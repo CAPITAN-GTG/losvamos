@@ -3,8 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, X, MapPin, ShoppingBag, ArrowRight } from 'lucide-react';
-import { places } from '../data/places';
-import { products } from '../data/products';
+// Remove direct API imports - we'll use static data for search
 
 interface SearchResult {
   id: string;
@@ -23,6 +22,40 @@ export default function SearchBar() {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Static search data for client-side search
+  const searchData = {
+    places: [
+      {
+        _id: 'angels-flight',
+        name: 'Angels Flight',
+        location: 'Los Angeles, California',
+        description: 'Un funicular histórico en el centro de Los Ángeles',
+        heroImage: '/angels-flight.png'
+      },
+      {
+        _id: 'gaylord-resort',
+        name: 'Gaylord Resort',
+        location: 'Nashville, Tennessee',
+        description: 'Un resort de lujo en Nashville',
+        heroImage: '/gaylord-resort.jpg'
+      }
+    ],
+    products: [
+      {
+        _id: 'shirt-hiking',
+        name: 'Camiseta Hiking',
+        description: 'Camiseta cómoda y resistente para tus aventuras',
+        heroImage: '/shirt-hiking.png'
+      },
+      {
+        _id: 'hat-hiking',
+        name: 'Sombrero Hiking',
+        description: 'Sombrero protector para el sol',
+        heroImage: '/hat-hiking.png'
+      }
+    ]
+  };
+
   // Handle search
   const handleSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -34,39 +67,34 @@ export default function SearchBar() {
     const searchTerm = searchQuery.toLowerCase();
     
     // Search places
-    const placeResults = places
+    const placeResults = searchData.places
       .filter(place => 
         place.name.toLowerCase().includes(searchTerm) ||
         place.location.toLowerCase().includes(searchTerm) ||
         place.description.toLowerCase().includes(searchTerm)
       )
       .map(place => ({
-        id: place.id,
+        id: place._id,
         name: place.name,
         type: 'place' as const,
-        image: place.image,
+        image: place.heroImage,
         description: place.location,
-        url: `/pages/blog/${place.id}`
+        url: `/pages/blog/${place.name.toLowerCase().replace(/\s+/g, '-')}`
       }));
 
     // Search products
-    const productResults = products
+    const productResults = searchData.products
       .filter(product => 
         product.name.toLowerCase().includes(searchTerm) ||
-        product.description.toLowerCase().includes(searchTerm) ||
-        product.category.toLowerCase().includes(searchTerm) ||
-        product.tags.some(tag => 
-          tag.value.toLowerCase().includes(searchTerm) ||
-          tag.label?.toLowerCase().includes(searchTerm)
-        )
+        product.description.toLowerCase().includes(searchTerm)
       )
       .map(product => ({
-        id: product.id,
+        id: product._id.toString(),
         name: product.name,
         type: 'product' as const,
-        image: product.mainImage,
+        image: product.heroImage,
         description: product.description,
-        url: `/pages/shop/${product.id}`
+        url: `/pages/shop/${product.name.toLowerCase().replace(/\s+/g, '-')}`
       }));
 
     // Limit results to 7 items for performance and UX

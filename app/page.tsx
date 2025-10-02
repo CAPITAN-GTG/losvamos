@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import Navigation from "./components/Navigation";
 import SearchBar from "./components/SearchBar";
-import { getFeaturedPlaces } from "./data/places";
-import { getFeaturedProducts, formatPrice } from "./data/products";
+import PinButton from "./components/PinButton";
+import CartButton from "./components/CartButton";
+import { getFeaturedPlaces, getFeaturedProducts, formatPrice } from "@/lib/api-utils";
 import {
   Carousel,
   CarouselContent,
@@ -30,9 +31,9 @@ import {
   MapPin as LocationIcon
 } from "lucide-react";
 
-export default function Home() {
-  const featuredPlaces = getFeaturedPlaces();
-  const featuredProducts = getFeaturedProducts();
+export default async function Home() {
+  const featuredPlaces = await getFeaturedPlaces();
+  const featuredProducts = await getFeaturedProducts();
   
   return (
     <div className="min-h-screen bg-white">
@@ -130,22 +131,24 @@ export default function Home() {
             className="w-full max-w-7xl"
           >
             <CarouselContent className="-ml-4">
-              {featuredPlaces.map((place) => (
-                <CarouselItem key={place.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                  <Link href={`/pages/blog/${place.id}`}>
+              {featuredPlaces.map((place: any) => (
+                <CarouselItem key={place._id || place.name} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                  <Link href={`/pages/blog/${place.name.toLowerCase().replace(/\s+/g, '-')}`}>
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-gray-100">
                       <div className="aspect-video relative overflow-hidden">
                         <Image
-                          src={place.image}
+                          src={place.heroImage}
                           alt={place.name}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="bg-white/90 backdrop-blur-sm rounded-full p-2">
-                            <Heart className="w-4 h-4 text-red-500" />
-                          </div>
+                          <PinButton 
+                            placeId={place._id} 
+                            placeName={place.name}
+                            className="bg-white/90 backdrop-blur-sm"
+                          />
                         </div>
                       </div>
                       <div className="p-6">
@@ -215,22 +218,24 @@ export default function Home() {
               className="w-full max-w-7xl"
             >
               <CarouselContent className="-ml-4">
-                {featuredProducts.map((product) => (
-                  <CarouselItem key={product.id} className="pl-4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-                    <Link href={`/pages/shop/${product.id}`}>
+                {featuredProducts.map((product: any) => (
+                  <CarouselItem key={product._id.toString() || product.name} className="pl-4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                    <Link href={`/pages/shop/${product.name.toLowerCase().replace(/\s+/g, '-')}`}>
                       <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-gray-100">
                         <div className="aspect-square relative overflow-hidden">
                           <Image
-                            src={product.mainImage}
+                            src={product.heroImage}
                             alt={product.name}
                             fill
                             className="object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div className="bg-white/90 backdrop-blur-sm rounded-full p-2">
-                              <Heart className="w-4 h-4 text-red-500" />
-                            </div>
+                            <CartButton 
+                              productId={product._id.toString()} 
+                              productName={product.name}
+                              className="bg-white/90 backdrop-blur-sm"
+                            />
                           </div>
                         </div>
                         <div className="p-6">

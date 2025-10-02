@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Navigation from "../../../components/Navigation";
-import { getPlaceById } from "../../../data/places";
+import { getPlaceById } from "@/lib/api-utils";
 
 interface PageProps {
   params: Promise<{
@@ -11,7 +11,7 @@ interface PageProps {
 
 export default async function BlogPost({ params }: PageProps) {
   const resolvedParams = await params;
-  const post = getPlaceById(resolvedParams.slug);
+  const post = await getPlaceById(resolvedParams.slug);
 
   if (!post) {
     notFound();
@@ -34,11 +34,11 @@ export default async function BlogPost({ params }: PageProps) {
               <p className="text-sm text-gray-600">{post.address}</p>
             </div>
             <p className="text-sm text-gray-600">
-              📅 {new Date(post.date).toLocaleDateString('es-ES', {
+              📅 {post.date ? new Date(post.date).toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
-              })}
+              }) : 'Fecha no disponible'}
             </p>
           </div>
         </div>
@@ -47,7 +47,7 @@ export default async function BlogPost({ params }: PageProps) {
         <div className="mb-8">
           <div className="aspect-video relative rounded-lg overflow-hidden shadow-lg">
             <Image
-              src={post.images[0]}
+              src={post.heroImage}
               alt={post.name}
               fill
               className="object-cover"
@@ -64,7 +64,7 @@ export default async function BlogPost({ params }: PageProps) {
 
         {/* Content */}
         <div className="prose prose-lg max-w-none">
-          {post.content.split('\n\n').map((paragraph, index) => (
+          {post.content?.split('\n\n').map((paragraph: string, index: number) => (
             <p key={index} className="mb-4 sm:mb-6 text-gray-700 leading-relaxed text-sm sm:text-base">
               {paragraph}
             </p>

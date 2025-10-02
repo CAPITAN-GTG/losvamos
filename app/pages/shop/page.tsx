@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import Navigation from "../../components/Navigation";
-import { products, formatPrice } from "../../data/products";
+import { productsApi, formatPrice } from "@/lib/api-utils";
 
-export default function Shop() {
+export default async function Shop() {
+  const { products } = await productsApi.getAll({ limit: 100 });
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
@@ -27,11 +28,11 @@ export default function Shop() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
           {/* Product Cards */}
           {products.map((product) => (
-            <Link key={product.id} href={`/pages/shop/${product.id}`}>
+            <Link key={product._id.toString()} href={`/pages/shop/${product.name.toLowerCase().replace(/\s+/g, '-')}`}>
               <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
                 <div className="aspect-square relative">
                   <Image
-                    src={product.mainImage}
+                    src={product.heroImage}
                     alt={product.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"

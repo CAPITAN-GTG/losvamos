@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import Navigation from "../../components/Navigation";
-import { places } from "../../data/places";
+import { placesApi } from "@/lib/api-utils";
 
-export default function Lugares() {
+export default async function Lugares() {
+  const { places } = await placesApi.getAll({ limit: 100 });
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
@@ -25,13 +26,13 @@ export default function Lugares() {
       {/* Places Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-          {places.map((place) => (
-            <Link key={place.id} href={`/pages/blog/${place.id}`}>
+          {places.map((place: any) => (
+            <Link key={place._id} href={`/pages/blog/${place.name.toLowerCase().replace(/\s+/g, '-')}`}>
               <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
                 <div className="aspect-video relative">
-                  <Image
-                    src={place.image}
-                    alt={place.name}
+                <Image
+                  src={place.heroImage}
+                  alt={place.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />

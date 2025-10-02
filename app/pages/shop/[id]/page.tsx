@@ -1,10 +1,9 @@
-'use client';
-
-import { useState, use } from 'react';
+import { use } from 'react';
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Navigation from "../../../components/Navigation";
-import { getProductById, formatPrice } from "../../../data/products";
+import { getProductById, formatPrice } from "@/lib/api-utils";
+import ProductImageGallery from "./ProductImageGallery";
 
 interface PageProps {
   params: Promise<{
@@ -12,23 +11,49 @@ interface PageProps {
   }>;
 }
 
-export default function ProductPage({ params }: PageProps) {
-  const resolvedParams = use(params);
-  const product = getProductById(resolvedParams.id);
+export default async function ProductPage({ params }: PageProps) {
+  try {
+    const resolvedParams = await params;
+    console.log('Looking for product with ID:', resolvedParams.id);
+    
+    const product = await getProductById(resolvedParams.id);
+    console.log('Found product:', product ? product.name : 'null');
 
-  if (!product) {
-    notFound();
-  }
+    if (!product) {
+      console.log('Product not found, calling notFound()');
+      notFound();
+    }
 
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    // Create a simplified product object to avoid circular references
+    const simplifiedProduct = {
+      _id: product._id?.toString(),
+      name: product.name,
+      description: product.description,
+      longDescription: product.longDescription,
+      price: product.price,
+      currency: product.currency,
+      heroImage: product.heroImage,
+      gallery: product.gallery || [],
+      category: product.category,
+      inStock: product.inStock,
+      stockQuantity: product.stockQuantity,
+      tags: product.tags || [],
+      sizes: product.sizes || [],
+      colors: product.colors || [],
+      isActive: product.isActive,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    };
 
-  const groupedTags = product.tags.reduce((acc, tag) => {
+    console.log('Simplified product created');
+
+    const groupedTags = simplifiedProduct.tags?.reduce((acc, tag) => {
     if (!acc[tag.type]) {
       acc[tag.type] = [];
     }
     acc[tag.type].push(tag);
     return acc;
-  }, {} as Record<string, typeof product.tags>);
+  }, {} as Record<string, any[]>) || {};
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,54 +63,20 @@ export default function ProductPage({ params }: PageProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
           {/* Product Images */}
-          <div className="space-y-4">
-            {/* Main Image */}
-            <div className="aspect-square relative rounded-lg overflow-hidden shadow-lg">
-              <Image
-                src={product.images[selectedImageIndex]}
-                alt={product.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-
-            {/* Thumbnail Images */}
-            {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-4">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`aspect-square relative rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImageIndex === index
-                        ? 'border-blue-500 ring-2 ring-blue-200'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <Image
-                      src={image}
-                      alt={`${product.name} ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductImageGallery product={simplifiedProduct} />
 
           {/* Product Info */}
           <div className="space-y-6 sm:space-y-8">
             {/* Title and Price */}
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                {product.name}
+                {simplifiedProduct.name}
               </h1>
               <div className="flex items-center space-x-4 mb-4">
                 <span className="text-2xl sm:text-3xl font-bold text-purple-600">
-                  {formatPrice(product)}
+                  {formatPrice(simplifiedProduct)}
                 </span>
-                {product.inStock ? (
+                {simplifiedProduct.inStock ? (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800">
                     En Stock
                   </span>
@@ -101,10 +92,10 @@ export default function ProductPage({ params }: PageProps) {
             <div>
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Descripción</h2>
               <p className="text-gray-900 leading-relaxed mb-4 text-sm sm:text-base">
-                {product.description}
+                {simplifiedProduct.description}
               </p>
               <p className="text-gray-900 leading-relaxed text-sm sm:text-base">
-                {product.longDescription}
+                {simplifiedProduct.longDescription}
               </p>
             </div>
 
@@ -134,14 +125,14 @@ export default function ProductPage({ params }: PageProps) {
             {/* Add to Cart Button */}
             <div className="space-y-4">
               <button
-                disabled={!product.inStock}
+                disabled={!simplifiedProduct.inStock}
                 className={`w-full py-3 sm:py-4 px-6 rounded-lg font-semibold text-sm sm:text-base transition-colors ${
-                  product.inStock
+                  simplifiedProduct.inStock
                     ? 'bg-purple-600 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                {product.inStock ? 'Agregar al Carrito' : 'Agotado'}
+                {simplifiedProduct.inStock ? 'Agregar al Carrito' : 'Agotado'}
               </button>
               
               <div className="flex space-x-4">
@@ -160,17 +151,17 @@ export default function ProductPage({ params }: PageProps) {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-900">Categoría:</span>
-                  <span className="capitalize text-gray-900">{product.category}</span>
+                  <span className="capitalize text-gray-900">{simplifiedProduct.category}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-900">Disponibilidad:</span>
-                  <span className="text-gray-900">{product.inStock ? 'En Stock' : 'Agotado'}</span>
+                  <span className="text-gray-900">{simplifiedProduct.inStock ? 'En Stock' : 'Agotado'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-900">Material:</span>
                   <span className="capitalize text-gray-900">
-                    {product.tags.find(tag => tag.type === 'material')?.label || 
-                     product.tags.find(tag => tag.type === 'material')?.value || 
+                    {simplifiedProduct.tags.find(tag => tag.type === 'material')?.label || 
+                     simplifiedProduct.tags.find(tag => tag.type === 'material')?.value || 
                      'No especificado'}
                   </span>
                 </div>
@@ -191,4 +182,8 @@ export default function ProductPage({ params }: PageProps) {
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('Error in ProductPage:', error);
+    throw error;
+  }
 }
