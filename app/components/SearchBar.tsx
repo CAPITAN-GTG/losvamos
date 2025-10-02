@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { Search, X, MapPin, ShoppingBag, ArrowRight } from 'lucide-react';
 import { places } from '../data/places';
 import { products } from '../data/products';
 
@@ -127,7 +128,7 @@ export default function SearchBar() {
   }, []);
 
   return (
-    <div className="relative w-full max-w-2xl" ref={searchRef}>
+    <div className="relative w-full max-w-2xl mx-auto" ref={searchRef}>
       <div className="relative">
         <input
           ref={inputRef}
@@ -144,9 +145,7 @@ export default function SearchBar() {
         
         {/* Search Icon */}
         <div className="absolute left-5 top-1/2 transform -translate-y-1/2">
-          <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search className="w-6 h-6 text-gray-500" />
         </div>
 
         {/* Clear Button */}
@@ -159,11 +158,9 @@ export default function SearchBar() {
               setSelectedIndex(-1);
               inputRef.current?.focus();
             }}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-all duration-200"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-5 h-5" />
           </button>
         )}
       </div>
@@ -196,12 +193,22 @@ export default function SearchBar() {
                     <h3 className="font-semibold text-gray-900 truncate">
                       {result.name}
                     </h3>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    <span className={`flex items-center space-x-1 px-2 py-1 text-xs font-medium rounded-full ${
                       result.type === 'place' 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {result.type === 'place' ? 'Lugar' : 'Producto'}
+                      {result.type === 'place' ? (
+                        <>
+                          <MapPin className="w-3 h-3" />
+                          <span>Lugar</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag className="w-3 h-3" />
+                          <span>Producto</span>
+                        </>
+                      )}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 truncate">
@@ -209,9 +216,7 @@ export default function SearchBar() {
                   </p>
                 </div>
                 <div className="flex-shrink-0 ml-4">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ArrowRight className="w-5 h-5 text-gray-400" />
                 </div>
               </Link>
             ))}

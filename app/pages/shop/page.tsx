@@ -5,11 +5,11 @@ import { products, formatPrice } from "../../data/products";
 
 export default function Shop() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navigation />
 
       {/* Hero Section */}
-      <div className="bg-blue-600 text-white">
+      <div className="bg-purple-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
@@ -39,10 +39,10 @@ export default function Shop() {
                 </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-base sm:text-lg mb-2 text-gray-900">{product.name}</h3>
-                  <p className="text-lg sm:text-xl font-bold text-blue-600 mb-2">{formatPrice(product)}</p>
+                  <p className="text-lg sm:text-xl font-bold text-purple-600 mb-2">{formatPrice(product)}</p>
                   <p className="text-sm text-gray-700 mb-4 line-clamp-2">{product.description}</p>
                   {product.inStock ? (
-                    <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base">
+                    <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base">
                       Ver Detalles
                     </button>
                   ) : (

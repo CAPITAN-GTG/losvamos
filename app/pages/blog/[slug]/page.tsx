@@ -18,7 +18,7 @@ export default async function BlogPost({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navigation />
 
       {/* Blog Content */}

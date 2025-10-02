@@ -82,7 +82,7 @@ export default function ProductPage({ params }: PageProps) {
                 {product.name}
               </h1>
               <div className="flex items-center space-x-4 mb-4">
-                <span className="text-2xl sm:text-3xl font-bold text-blue-600">
+                <span className="text-2xl sm:text-3xl font-bold text-purple-600">
                   {formatPrice(product)}
                 </span>
                 {product.inStock ? (
@@ -100,10 +100,10 @@ export default function ProductPage({ params }: PageProps) {
             {/* Description */}
             <div>
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Descripción</h2>
-              <p className="text-gray-700 leading-relaxed mb-4 text-sm sm:text-base">
+              <p className="text-gray-900 leading-relaxed mb-4 text-sm sm:text-base">
                 {product.description}
               </p>
-              <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+              <p className="text-gray-900 leading-relaxed text-sm sm:text-base">
                 {product.longDescription}
               </p>
             </div>
@@ -121,7 +121,7 @@ export default function ProductPage({ params }: PageProps) {
                     {tags.map((tag, index) => (
                       <button
                         key={index}
-                        className="px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm sm:text-base"
+                        className="px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm sm:text-base text-gray-900"
                       >
                         {tag.label || tag.value}
                       </button>
@@ -137,7 +137,7 @@ export default function ProductPage({ params }: PageProps) {
                 disabled={!product.inStock}
                 className={`w-full py-3 sm:py-4 px-6 rounded-lg font-semibold text-sm sm:text-base transition-colors ${
                   product.inStock
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                    ? 'bg-purple-600 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
@@ -145,10 +145,10 @@ export default function ProductPage({ params }: PageProps) {
               </button>
               
               <div className="flex space-x-4">
-                <button className="flex-1 py-2 sm:py-3 px-4 sm:px-6 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base">
+                <button className="flex-1 py-2 sm:py-3 px-4 sm:px-6 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base text-gray-900">
                   Agregar a Favoritos
                 </button>
-                <button className="flex-1 py-2 sm:py-3 px-4 sm:px-6 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base">
+                <button className="flex-1 py-2 sm:py-3 px-4 sm:px-6 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base text-gray-900">
                   Compartir
                 </button>
               </div>
@@ -157,17 +157,17 @@ export default function ProductPage({ params }: PageProps) {
             {/* Product Details */}
             <div className="border-t pt-6 sm:pt-8">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Detalles del Producto</h3>
-              <div className="space-y-2 text-sm text-gray-700">
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span>Categoría:</span>
+                  <span className="text-gray-900">Categoría:</span>
                   <span className="capitalize text-gray-900">{product.category}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Disponibilidad:</span>
+                  <span className="text-gray-900">Disponibilidad:</span>
                   <span className="text-gray-900">{product.inStock ? 'En Stock' : 'Agotado'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Material:</span>
+                  <span className="text-gray-900">Material:</span>
                   <span className="capitalize text-gray-900">
                     {product.tags.find(tag => tag.type === 'material')?.label || 
                      product.tags.find(tag => tag.type === 'material')?.value || 
@@ -183,7 +183,7 @@ export default function ProductPage({ params }: PageProps) {
         <div className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t">
           <a
             href="/pages/shop"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-sm sm:text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-6 py-3 border border-transparent text-sm sm:text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors"
           >
             ← Volver a la Tienda
           </a>
