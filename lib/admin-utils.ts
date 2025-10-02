@@ -1,11 +1,9 @@
-import { User } from '@clerk/nextjs';
-
 /**
  * Check if the current user is an admin
  * @param user - The Clerk user object
  * @returns boolean - true if user is admin, false otherwise
  */
-export function isAdmin(user: User | null | undefined): boolean {
+export function isAdmin(user: any | null | undefined): boolean {
   if (!user) return false;
   
   const adminUserId = process.env.ADMIN_USER;
