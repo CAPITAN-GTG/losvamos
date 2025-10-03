@@ -345,7 +345,7 @@ export default function PlaceDetailPage({ params }: PageProps) {
                 
                 {/* Gallery Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                  {currentGalleryImages.map((image, index) => {
+                  {currentGalleryImages.map((image: string, index: number) => {
                     const globalIndex = galleryPage * imagesPerPage + index;
                     return (
                       <div 
