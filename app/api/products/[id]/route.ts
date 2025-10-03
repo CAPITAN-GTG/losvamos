@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/lib/schemas/Product';
+import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +11,15 @@ export async function GET(
     await connectDB();
     
     const { id } = await params;
-    const product = await Product.findOne({ name: { $regex: new RegExp(id, 'i') } });
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid product ID' },
+        { status: 400 }
+      );
+    }
+    
+    const product = await Product.findById(id);
     
     if (!product) {
       return NextResponse.json(
@@ -36,10 +45,18 @@ export async function PUT(
     await connectDB();
     
     const { id } = await params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid product ID' },
+        { status: 400 }
+      );
+    }
+    
     const body = await request.json();
     
-    const product = await Product.findOneAndUpdate(
-      { name: { $regex: new RegExp(id, 'i') } },
+    const product = await Product.findByIdAndUpdate(
+      id,
       { ...body, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
@@ -68,7 +85,15 @@ export async function DELETE(
     await connectDB();
     
     const { id } = await params;
-    const product = await Product.findOneAndDelete({ name: { $regex: new RegExp(id, 'i') } });
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid product ID' },
+        { status: 400 }
+      );
+    }
+    
+    const product = await Product.findByIdAndDelete(id);
     
     if (!product) {
       return NextResponse.json(

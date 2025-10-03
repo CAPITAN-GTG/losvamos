@@ -4,13 +4,15 @@ import { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { X, Plus, Image as ImageIcon, Upload } from 'lucide-react';
 import { uploadToCloudinary, dataURLtoFile, validateImageFile } from '@/lib/cloudinary-utils';
+import { editPlace } from '@/lib/admin-api-utils';
 
 interface PlaceFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  editingPlace?: any;
 }
 
-export default function PlaceForm({ onClose, onSuccess }: PlaceFormProps) {
+export default function PlaceForm({ onClose, onSuccess, editingPlace }: PlaceFormProps) {
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
@@ -31,6 +33,24 @@ export default function PlaceForm({ onClose, onSuccess }: PlaceFormProps) {
   
   const heroImageRef = useRef<HTMLInputElement>(null);
   const galleryImageRef = useRef<HTMLInputElement>(null);
+
+  // Initialize form data when editing
+  useEffect(() => {
+    if (editingPlace) {
+      setFormData({
+        title: editingPlace.title || '',
+        subtitle: editingPlace.subtitle || '',
+        date: editingPlace.date || '',
+        heroImage: editingPlace.heroImage || '',
+        description: editingPlace.description || '',
+        location: editingPlace.location || '',
+        gallery: editingPlace.gallery || [],
+        isActive: editingPlace.isActive !== undefined ? editingPlace.isActive : true
+      });
+      setHeroImagePreview(editingPlace.heroImage || '');
+      setGalleryPreviews(editingPlace.gallery || []);
+    }
+  }, [editingPlace]);
 
   // Cleanup object URLs on unmount
   useEffect(() => {
@@ -112,7 +132,7 @@ export default function PlaceForm({ onClose, onSuccess }: PlaceFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedHeroFile) {
+    if (!editingPlace && !selectedHeroFile) {
       toast.error('La imagen principal es requerida');
       return;
     }
@@ -121,8 +141,13 @@ export default function PlaceForm({ onClose, onSuccess }: PlaceFormProps) {
     setUploading(true);
 
     try {
-      // Upload hero image to Cloudinary
-      const heroResult = await uploadToCloudinary(selectedHeroFile, 'losvamos/places');
+      let finalHeroImage = formData.heroImage;
+      
+      // Upload new hero image to Cloudinary if there's one
+      if (selectedHeroFile) {
+        const heroResult = await uploadToCloudinary(selectedHeroFile, 'losvamos/places');
+        finalHeroImage = heroResult.secure_url;
+      }
       
       // Upload gallery images to Cloudinary
       const galleryImages: string[] = [];
@@ -134,30 +159,39 @@ export default function PlaceForm({ onClose, onSuccess }: PlaceFormProps) {
       // Add any URL-based gallery images
       const allGalleryImages = [...galleryImages, ...formData.gallery.filter(img => img.startsWith('http'))];
 
-      // Submit form with uploaded image URLs
-      const response = await fetch('/api/places', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          heroImage: heroResult.secure_url,
-          gallery: allGalleryImages
-        }),
-      });
+      const placeData = {
+        ...formData,
+        heroImage: finalHeroImage,
+        gallery: allGalleryImages
+      };
 
-      if (response.ok) {
-        toast.success('Lugar creado exitosamente');
-        onSuccess();
-        onClose();
+      if (editingPlace) {
+        // Update existing place
+        await editPlace(editingPlace._id.toString(), placeData);
+        toast.success('Lugar actualizado exitosamente');
       } else {
-        const error = await response.json();
-        toast.error(error.error || 'Error al crear el lugar');
+        // Create new place
+        const response = await fetch('/api/places', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(placeData),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Error al crear el lugar');
+        }
+        toast.success('Lugar creado exitosamente');
       }
+      
+      onSuccess();
+      onClose();
     } catch (error) {
-      toast.error('Error al crear el lugar');
-      console.error('Create place error:', error);
+      const message = editingPlace ? 'Error al actualizar el lugar' : 'Error al crear el lugar';
+      toast.error(message);
+      console.error('Place operation error:', error);
     } finally {
       setIsLoading(false);
       setUploading(false);
@@ -168,7 +202,9 @@ export default function PlaceForm({ onClose, onSuccess }: PlaceFormProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Crear Nuevo Lugar</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {editingPlace ? 'Editar Lugar' : 'Crear Nuevo Lugar'}
+          </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -412,7 +448,7 @@ export default function PlaceForm({ onClose, onSuccess }: PlaceFormProps) {
               disabled={isLoading || uploading || !selectedHeroFile}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creando...' : uploading ? 'Subiendo...' : 'Crear Lugar'}
+              {isLoading ? (editingPlace ? 'Actualizando...' : 'Creando...') : uploading ? 'Subiendo...' : (editingPlace ? 'Actualizar Lugar' : 'Crear Lugar')}
             </button>
           </div>
         </form>

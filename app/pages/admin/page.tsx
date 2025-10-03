@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navigation from '../../components/Navigation';
 import { isAdminClient } from '@/lib/admin-utils';
-import { getProducts, getPlaces } from '@/lib/admin-api-utils';
+import { getProducts, getPlaces, editProduct, editPlace, deleteProduct, deletePlace } from '@/lib/admin-api-utils';
 import ProductForm from '../../components/admin/ProductForm';
 import PlaceForm from '../../components/admin/PlaceForm';
 import { 
@@ -20,7 +20,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  Eye,
   TrendingUp,
   Database,
   FileText,
@@ -36,6 +35,8 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [places, setPlaces] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingPlace, setEditingPlace] = useState<any>(null);
 
   const refreshData = async () => {
     setDataLoading(true);
@@ -50,6 +51,42 @@ export default function AdminDashboard() {
       console.error('Error refreshing data:', error);
     } finally {
       setDataLoading(false);
+    }
+  };
+
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product);
+    setShowProductForm(true);
+  };
+
+  const handleEditPlace = (place: any) => {
+    setEditingPlace(place);
+    setShowPlaceForm(true);
+  };
+
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar el producto "${productName}"? Esta acción no se puede deshacer.`)) {
+      try {
+        await deleteProduct(productId);
+        await refreshData();
+        alert('Producto eliminado exitosamente');
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Error al eliminar el producto');
+      }
+    }
+  };
+
+  const handleDeletePlace = async (placeId: string, placeTitle: string) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar el lugar "${placeTitle}"? Esta acción no se puede deshacer.`)) {
+      try {
+        await deletePlace(placeId);
+        await refreshData();
+        alert('Lugar eliminado exitosamente');
+      } catch (error) {
+        console.error('Error deleting place:', error);
+        alert('Error al eliminar el lugar');
+      }
     }
   };
 
@@ -260,13 +297,18 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
+                        <button 
+                          onClick={() => handleEditPlace(place)}
+                          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                          title="Editar lugar"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="p-1 text-red-400 hover:text-red-600 transition-colors">
+                        <button 
+                          onClick={() => handleDeletePlace(place._id.toString(), place.title)}
+                          className="p-1 text-red-400 hover:text-red-600 transition-colors"
+                          title="Eliminar lugar"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -334,13 +376,18 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
+                        <button 
+                          onClick={() => handleEditProduct(product)}
+                          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                          title="Editar producto"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="p-1 text-red-400 hover:text-red-600 transition-colors">
+                        <button 
+                          onClick={() => handleDeleteProduct(product._id.toString(), product.name)}
+                          className="p-1 text-red-400 hover:text-red-600 transition-colors"
+                          title="Eliminar producto"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -374,21 +421,31 @@ export default function AdminDashboard() {
       {/* Forms */}
       {showPlaceForm && (
         <PlaceForm
-          onClose={() => setShowPlaceForm(false)}
+          onClose={() => {
+            setShowPlaceForm(false);
+            setEditingPlace(null);
+          }}
           onSuccess={() => {
             refreshData();
             setShowPlaceForm(false);
+            setEditingPlace(null);
           }}
+          editingPlace={editingPlace}
         />
       )}
       
       {showProductForm && (
         <ProductForm
-          onClose={() => setShowProductForm(false)}
+          onClose={() => {
+            setShowProductForm(false);
+            setEditingProduct(null);
+          }}
           onSuccess={() => {
             refreshData();
             setShowProductForm(false);
+            setEditingProduct(null);
           }}
+          editingProduct={editingProduct}
         />
       )}
       

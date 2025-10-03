@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Place from '@/lib/schemas/Place';
+import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +11,15 @@ export async function GET(
     await connectDB();
     
     const { id } = await params;
-    const place = await Place.findOne({ title: { $regex: new RegExp(id, 'i') } });
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid place ID' },
+        { status: 400 }
+      );
+    }
+    
+    const place = await Place.findById(id);
     
     if (!place) {
       return NextResponse.json(
@@ -36,10 +45,18 @@ export async function PUT(
     await connectDB();
     
     const { id } = await params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid place ID' },
+        { status: 400 }
+      );
+    }
+    
     const body = await request.json();
     
-    const place = await Place.findOneAndUpdate(
-      { title: { $regex: new RegExp(id, 'i') } },
+    const place = await Place.findByIdAndUpdate(
+      id,
       { ...body, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
@@ -68,7 +85,15 @@ export async function DELETE(
     await connectDB();
     
     const { id } = await params;
-    const place = await Place.findOneAndDelete({ title: { $regex: new RegExp(id, 'i') } });
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid place ID' },
+        { status: 400 }
+      );
+    }
+    
+    const place = await Place.findByIdAndDelete(id);
     
     if (!place) {
       return NextResponse.json(

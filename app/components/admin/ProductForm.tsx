@@ -4,13 +4,15 @@ import { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { X, Plus, Image as ImageIcon } from 'lucide-react';
 import { uploadToCloudinary, dataURLtoFile, validateImageFile } from '@/lib/cloudinary-utils';
+import { editProduct } from '@/lib/admin-api-utils';
 
 interface ProductFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  editingProduct?: any;
 }
 
-export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
+export default function ProductForm({ onClose, onSuccess, editingProduct }: ProductFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -31,6 +33,25 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const imageRef = useRef<HTMLInputElement>(null);
+
+  // Initialize form data when editing
+  useEffect(() => {
+    if (editingProduct) {
+      setFormData({
+        name: editingProduct.name || '',
+        description: editingProduct.description || '',
+        price: editingProduct.price?.toString() || '',
+        category: editingProduct.category || '',
+        images: editingProduct.images || [],
+        quantity: editingProduct.quantity?.toString() || '',
+        tags: editingProduct.tags || [],
+        sizes: editingProduct.sizes || [],
+        colors: editingProduct.colors || [],
+        isActive: editingProduct.isActive !== undefined ? editingProduct.isActive : true
+      });
+      setImagePreviews(editingProduct.images || []);
+    }
+  }, [editingProduct]);
 
   // Cleanup object URLs on unmount
   useEffect(() => {
@@ -153,7 +174,7 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (selectedFiles.length === 0) {
+    if (!editingProduct && selectedFiles.length === 0) {
       toast.error('Al menos una imagen es requerida');
       return;
     }
@@ -162,41 +183,61 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
     setUploading(true);
 
     try {
-      // Upload images to Cloudinary
-      const uploadedImages: string[] = [];
+      let finalImages = formData.images;
       
-      for (const file of selectedFiles) {
-        const result = await uploadToCloudinary(file, 'losvamos/products');
-        uploadedImages.push(result.secure_url);
+      // Upload new images to Cloudinary if there are any
+      if (selectedFiles.length > 0) {
+        const uploadedImages: string[] = [];
+        
+        for (const file of selectedFiles) {
+          const result = await uploadToCloudinary(file, 'losvamos/products');
+          uploadedImages.push(result.secure_url);
+        }
+        
+        // For editing, combine existing images with new ones
+        if (editingProduct) {
+          finalImages = [...formData.images, ...uploadedImages];
+        } else {
+          finalImages = uploadedImages;
+        }
       }
 
-      // Submit form with uploaded image URLs
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          images: uploadedImages,
-          price: parseFloat(formData.price),
-          quantity: parseInt(formData.quantity) || 0,
-          inStock: parseInt(formData.quantity) > 0,
-          currency: 'USD'
-        }),
-      });
+      const productData = {
+        ...formData,
+        images: finalImages,
+        price: parseFloat(formData.price),
+        quantity: parseInt(formData.quantity) || 0,
+        inStock: parseInt(formData.quantity) > 0,
+        currency: 'USD'
+      };
 
-      if (response.ok) {
-        toast.success('Producto creado exitosamente');
-        onSuccess();
-        onClose();
+      if (editingProduct) {
+        // Update existing product
+        await editProduct(editingProduct._id.toString(), productData);
+        toast.success('Producto actualizado exitosamente');
       } else {
-        const error = await response.json();
-        toast.error(error.error || 'Error al crear el producto');
+        // Create new product
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Error al crear el producto');
+        }
+        toast.success('Producto creado exitosamente');
       }
+      
+      onSuccess();
+      onClose();
     } catch (error) {
-      toast.error('Error al crear el producto');
-      console.error('Create product error:', error);
+      const message = editingProduct ? 'Error al actualizar el producto' : 'Error al crear el producto';
+      toast.error(message);
+      console.error('Product operation error:', error);
     } finally {
       setIsLoading(false);
       setUploading(false);
@@ -207,7 +248,9 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Crear Nuevo Producto</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {editingProduct ? 'Editar Producto' : 'Crear Nuevo Producto'}
+          </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -545,7 +588,7 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
               disabled={isLoading || uploading || imagePreviews.length === 0}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creando...' : uploading ? 'Subiendo...' : 'Crear Producto'}
+              {isLoading ? (editingProduct ? 'Actualizando...' : 'Creando...') : uploading ? 'Subiendo...' : (editingProduct ? 'Actualizar Producto' : 'Crear Producto')}
             </button>
           </div>
         </form>
