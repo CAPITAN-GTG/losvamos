@@ -306,15 +306,15 @@ export default async function Home() {
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 text-gray-300">
                   <Mail className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm">N/A (pronto)</span>
+                  <span className="text-sm">losvamos@gmail.com</span>
                 </div>
                 <div className="flex items-center space-x-3 text-gray-300">
-                  <Phone className="w-4 h-4 text-green-400" />
-                  <span className="text-sm">N/A (pronto)</span>
+                  <Phone href="tel:(747) 227-9867" className="w-4 h-4 text-green-400" />
+                  <span className="text-sm">(747) 227-9867</span>
                 </div>
                 <div className="flex items-center space-x-3 text-gray-300">
                   <LocationIcon className="w-4 h-4 text-red-400" />
-                  <span className="text-sm">Texas</span>
+                  <span className="text-sm">Texas, USA</span>
                 </div>
               </div>
             </div>
@@ -343,6 +343,13 @@ export default async function Home() {
                 >
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                   <span>Tienda</span>
+                </a>
+                <a 
+                  href="/pages/mapa" 
+                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors group"
+                >
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  <span>Mapa</span>
                 </a>
               </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Menu, X, MapPin, ShoppingBag, Home, User, LayoutDashboard, ShoppingCart, Shield } from 'lucide-react';
+import { Menu, X, MapPin, ShoppingBag, Home, User, LayoutDashboard, ShoppingCart, Shield, Globe } from 'lucide-react';
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { useUser } from '@clerk/nextjs';
 import { getCartItemCount } from '@/lib/cart-utils';
@@ -80,6 +80,13 @@ export default function Navigation() {
             >
               <ShoppingBag className="w-4 h-4" />
               <span>Tienda</span>
+            </a>
+            <a 
+              href="/pages/mapa" 
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white hover:text-green-200 hover:bg-green-700 transition-all duration-200 font-medium"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Mapa</span>
             </a>
             
             {/* Dashboard Link for Signed In Users */}
@@ -190,6 +197,14 @@ export default function Navigation() {
             >
               <ShoppingBag className="w-5 h-5" />
               <span>Tienda</span>
+            </a>
+            <a
+              href="/pages/mapa"
+              className="flex items-center space-x-3 px-3 py-3 text-white hover:text-green-200 hover:bg-green-600 transition-all duration-200 rounded-lg"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Globe className="w-5 h-5" />
+              <span>Mapa</span>
             </a>
             
             {/* Dashboard Link for Signed In Users - Mobile */}
