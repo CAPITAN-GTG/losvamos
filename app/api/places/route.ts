@@ -7,11 +7,10 @@ export async function GET(request: NextRequest) {
     await connectDB();
     
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category');
     const limit = parseInt(searchParams.get('limit') || '10');
     const page = parseInt(searchParams.get('page') || '1');
     
-    const query = category ? { category, isActive: true } : { isActive: true };
+    const query = { isActive: true };
     
     const places = await Place.find(query)
       .limit(limit)

@@ -2,6 +2,7 @@ import { use } from 'react';
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Navigation from "../../../components/Navigation";
+import CartButton from "../../../components/CartButton";
 import { getProductById, formatPrice } from "@/lib/api-utils";
 import ProductImageGallery from "./ProductImageGallery";
 
@@ -24,30 +25,10 @@ export default async function ProductPage({ params }: PageProps) {
       notFound();
     }
 
-    // Create a simplified product object to avoid circular references
-    const simplifiedProduct = {
-      _id: product._id?.toString(),
-      name: product.name,
-      description: product.description,
-      longDescription: product.longDescription,
-      price: product.price,
-      currency: product.currency,
-      heroImage: product.heroImage,
-      gallery: product.gallery || [],
-      category: product.category,
-      inStock: product.inStock,
-      stockQuantity: product.stockQuantity,
-      tags: product.tags || [],
-      sizes: product.sizes || [],
-      colors: product.colors || [],
-      isActive: product.isActive,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt
-    };
+    // Product is already serialized from the API
+    console.log('Product loaded successfully');
 
-    console.log('Simplified product created');
-
-    const groupedTags = simplifiedProduct.tags?.reduce((acc, tag) => {
+    const groupedTags = product.tags?.reduce((acc, tag) => {
     if (!acc[tag.type]) {
       acc[tag.type] = [];
     }
@@ -63,20 +44,20 @@ export default async function ProductPage({ params }: PageProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
           {/* Product Images */}
-          <ProductImageGallery product={simplifiedProduct} />
+          <ProductImageGallery product={product} />
 
           {/* Product Info */}
           <div className="space-y-6 sm:space-y-8">
             {/* Title and Price */}
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                {simplifiedProduct.name}
+                {product.name}
               </h1>
               <div className="flex items-center space-x-4 mb-4">
                 <span className="text-2xl sm:text-3xl font-bold text-purple-600">
-                  {formatPrice(simplifiedProduct)}
+                  {formatPrice(product)}
                 </span>
-                {simplifiedProduct.inStock ? (
+                {product.inStock ? (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800">
                     En Stock
                   </span>
@@ -92,10 +73,10 @@ export default async function ProductPage({ params }: PageProps) {
             <div>
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Descripción</h2>
               <p className="text-gray-900 leading-relaxed mb-4 text-sm sm:text-base">
-                {simplifiedProduct.description}
+                {product.description}
               </p>
               <p className="text-gray-900 leading-relaxed text-sm sm:text-base">
-                {simplifiedProduct.longDescription}
+                {product.longDescription}
               </p>
             </div>
 
@@ -124,16 +105,23 @@ export default async function ProductPage({ params }: PageProps) {
 
             {/* Add to Cart Button */}
             <div className="space-y-4">
-              <button
-                disabled={!simplifiedProduct.inStock}
-                className={`w-full py-3 sm:py-4 px-6 rounded-lg font-semibold text-sm sm:text-base transition-colors ${
-                  simplifiedProduct.inStock
-                    ? 'bg-purple-600 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {simplifiedProduct.inStock ? 'Agregar al Carrito' : 'Agotado'}
-              </button>
+              {product.inStock ? (
+                <CartButton
+                  productId={product._id?.toString() || ''}
+                  productName={product.name}
+                  productPrice={product.price}
+                  productCurrency={product.currency || 'USD'}
+                  productImage={product.images?.[0] || '/placeholder-image.jpg'}
+                  className="w-full py-3 sm:py-4 px-6 rounded-lg font-semibold text-sm sm:text-base"
+                />
+              ) : (
+                <button
+                  disabled
+                  className="w-full py-3 sm:py-4 px-6 rounded-lg font-semibold text-sm sm:text-base bg-gray-300 text-gray-500 cursor-not-allowed"
+                >
+                  Agotado
+                </button>
+              )}
               
               <div className="flex space-x-4">
                 <button className="flex-1 py-2 sm:py-3 px-4 sm:px-6 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base text-gray-900">
@@ -151,17 +139,17 @@ export default async function ProductPage({ params }: PageProps) {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-900">Categoría:</span>
-                  <span className="capitalize text-gray-900">{simplifiedProduct.category}</span>
+                  <span className="capitalize text-gray-900">{product.category}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-900">Disponibilidad:</span>
-                  <span className="text-gray-900">{simplifiedProduct.inStock ? 'En Stock' : 'Agotado'}</span>
+                  <span className="text-gray-900">{product.inStock ? 'En Stock' : 'Agotado'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-900">Material:</span>
                   <span className="capitalize text-gray-900">
-                    {simplifiedProduct.tags.find(tag => tag.type === 'material')?.label || 
-                     simplifiedProduct.tags.find(tag => tag.type === 'material')?.value || 
+                    {product.tags?.find(tag => tag.type === 'material')?.label || 
+                     product.tags?.find(tag => tag.type === 'material')?.value || 
                      'No especificado'}
                   </span>
                 </div>

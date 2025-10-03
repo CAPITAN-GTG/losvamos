@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Menu, X, MapPin, ShoppingBag, Home, User, LayoutDashboard, ShoppingCart, Shield } from 'lucide-react';
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { useUser } from '@clerk/nextjs';
-import { getCartItemCount } from '@/lib/cookie-utils';
+import { getCartItemCount } from '@/lib/cart-utils';
 import { isAdminClient } from '@/lib/admin-utils';
 
 export default function Navigation() {
@@ -41,7 +41,7 @@ export default function Navigation() {
             <a href="/" className="flex items-center space-x-3 group">
               <div className="relative">
                 <Image
-                  src="/logo.jpeg"
+                  src="/logo.png"
                   alt="Los Vamos Logo"
                   width={60}
                   height={60}

@@ -8,19 +8,26 @@ import {
   addToCart, 
   removeFromCart, 
   updateCartQuantity,
-  getCart 
-} from '@/lib/cookie-utils';
+  getCart,
+  getItemQuantity
+} from '@/lib/cart-utils';
 
 interface CartButtonProps {
   productId: string;
   productName: string;
+  productPrice: number;
+  productCurrency: string;
+  productImage: string;
   className?: string;
   showQuantity?: boolean;
 }
 
 export default function CartButton({ 
   productId, 
-  productName, 
+  productName,
+  productPrice,
+  productCurrency,
+  productImage,
   className = '',
   showQuantity = false 
 }: CartButtonProps) {
@@ -30,9 +37,8 @@ export default function CartButton({
 
   useEffect(() => {
     if (isLoaded && user) {
-      const cart = getCart(user.id);
-      const item = cart.find(item => item.productId === productId);
-      setCartQuantity(item ? item.quantity : 0);
+      const quantity = getItemQuantity(user.id, productId);
+      setCartQuantity(quantity);
     }
   }, [productId, user, isLoaded]);
 
@@ -45,7 +51,15 @@ export default function CartButton({
     setIsLoading(true);
     
     try {
-      addToCart(productId, user.id, 1);
+      addToCart(
+        user.id,
+        productId,
+        productName,
+        productPrice,
+        productCurrency,
+        productImage,
+        1
+      );
       setCartQuantity(prev => prev + 1);
       toast.success(`${productName} agregado al carrito`);
       // Dispatch event to update cart count in navigation
@@ -63,7 +77,7 @@ export default function CartButton({
     setIsLoading(true);
     
     try {
-      removeFromCart(productId, user.id);
+      removeFromCart(user.id, productId);
       setCartQuantity(0);
       toast.success(`${productName} eliminado del carrito`);
       // Dispatch event to update cart count in navigation
@@ -82,10 +96,10 @@ export default function CartButton({
     
     try {
       if (newQuantity <= 0) {
-        removeFromCart(productId, user.id);
+        removeFromCart(user.id, productId);
         setCartQuantity(0);
       } else {
-        updateCartQuantity(productId, newQuantity, user.id);
+        updateCartQuantity(user.id, productId, newQuantity);
         setCartQuantity(newQuantity);
       }
       // Dispatch event to update cart count in navigation

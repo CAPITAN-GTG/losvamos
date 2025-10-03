@@ -6,9 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Navigation from '../../components/Navigation';
 import CartButton from '../../components/CartButton';
-import { getCart, clearCart } from '@/lib/cookie-utils';
-import { getProductById } from '@/lib/api-utils';
-import { formatPrice } from '@/lib/api-utils';
+import { getCart, clearCart, updateCartQuantity, removeFromCart } from '@/lib/cart-utils';
+import { CartItem } from '@/lib/cart-utils';
 import { 
   ShoppingCart, 
   Trash2, 
@@ -20,62 +19,51 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-interface CartItem {
-  productId: string;
-  quantity: number;
-}
+// CartItem interface is now imported from cart-utils
 
-interface Product {
-  _id: string;
-  name: string;
-  heroImage: string;
-  price: number;
-  description: string;
-  gallery?: string[];
-  category: string;
-}
 
 export default function Cart() {
   const { user, isLoaded } = useUser();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isLoaded && user) {
       const cart = getCart(user.id);
-      setCartItems(cart);
-      
-      // Fetch product details for each cart item
-      const fetchProducts = async () => {
-        try {
-          const productPromises = cart.map(item => getProductById(item.productId));
-          const productResults = await Promise.all(productPromises);
-          setProducts(productResults.filter(product => product !== null) as Product[]);
-        } catch (error) {
-          toast.error('Error al cargar los productos');
-        } finally {
-          setIsLoading(false);
-        }
+      setCartItems(cart.items);
+      setIsLoading(false);
+
+      // Listen for cart updates
+      const handleCartUpdate = () => {
+        refreshCart();
       };
 
-      fetchProducts();
+      window.addEventListener('cartUpdated', handleCartUpdate);
+      
+      return () => {
+        window.removeEventListener('cartUpdated', handleCartUpdate);
+      };
     }
   }, [user, isLoaded]);
+
+  const refreshCart = () => {
+    if (user) {
+      const cart = getCart(user.id);
+      setCartItems(cart.items);
+    }
+  };
 
   const handleClearCart = () => {
     if (user) {
       clearCart(user.id);
       setCartItems([]);
-      setProducts([]);
       toast.success('Carrito vaciado');
     }
   };
 
   const getTotalPrice = () => {
-    return products.reduce((total, product) => {
-      const cartItem = cartItems.find(item => item.productId === product._id.toString());
-      return total + (product.price * (cartItem?.quantity || 0));
+    return cartItems.reduce((total, item) => {
+      return total + (item.price * item.quantity);
     }, 0);
   };
 
@@ -208,39 +196,37 @@ export default function Cart() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {products.map((product) => {
-              const cartItem = cartItems.find(item => item.productId === product._id.toString());
-              if (!cartItem) return null;
-
-              return (
-                <div key={product._id.toString()} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-20 h-20 relative rounded-lg overflow-hidden">
-                      <Image
-                        src={product.heroImage}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
+            {cartItems.map((cartItem) => (
+              <div key={cartItem.productId} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-20 h-20 relative rounded-lg overflow-hidden">
+                    <Image
+                      src={cartItem.image}
+                      alt={cartItem.productName}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1">{cartItem.productName}</h3>
+                    <p className="text-sm text-gray-600 mb-2">Agregado el {new Date(cartItem.addedAt).toLocaleDateString('es-ES')}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-green-600">
+                        {cartItem.currency} {cartItem.price.toFixed(2)}
+                      </span>
+                      <CartButton
+                        productId={cartItem.productId}
+                        productName={cartItem.productName}
+                        productPrice={cartItem.price}
+                        productCurrency={cartItem.currency}
+                        productImage={cartItem.image}
+                        showQuantity={true}
                       />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-green-600">
-                          {formatPrice(product)}
-                        </span>
-                        <CartButton
-                          productId={product._id.toString()}
-                          productName={product.name}
-                          showQuantity={true}
-                        />
-                      </div>
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
           {/* Order Summary */}

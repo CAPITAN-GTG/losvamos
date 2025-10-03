@@ -11,7 +11,8 @@ interface ProductImageGalleryProps {
 export default function ProductImageGallery({ product }: ProductImageGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const images = [product.heroImage, ...(product.gallery || [])];
+  // Ensure we have at least one image (fallback to placeholder if needed)
+  const images = product.images && product.images.length > 0 ? product.images : ['/placeholder-image.jpg'];
 
   return (
     <div className="space-y-4">

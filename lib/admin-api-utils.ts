@@ -12,17 +12,6 @@ export async function getProducts() {
   }
 }
 
-export async function getBlogPosts() {
-  try {
-    const response = await fetch('/api/blog');
-    if (!response.ok) throw new Error('Failed to fetch blog posts');
-    const data = await response.json();
-    return data.posts || [];
-  } catch (error) {
-    console.error('Error fetching blog posts:', error);
-    return [];
-  }
-}
 
 export async function getPlaces() {
   try {

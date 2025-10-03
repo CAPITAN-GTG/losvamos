@@ -6,11 +6,10 @@ const ProductSchema = new mongoose.Schema({
   longDescription: { type: String },
   price: { type: Number, required: true, min: 0 },
   currency: { type: String, default: 'USD' },
-  heroImage: { type: String, required: true },
-  gallery: [{ type: String }],
+  images: [{ type: String, required: true }],
   category: { type: String, required: true },
+  quantity: { type: Number, required: true, min: 0 },
   inStock: { type: Boolean, default: true },
-  stockQuantity: { type: Number, default: 0, min: 0 },
   tags: [{
     type: { type: String, required: true },
     value: { type: String, required: true },

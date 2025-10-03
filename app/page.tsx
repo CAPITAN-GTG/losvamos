@@ -132,21 +132,21 @@ export default async function Home() {
           >
             <CarouselContent className="-ml-4">
               {featuredPlaces.map((place: any) => (
-                <CarouselItem key={place._id || place.name} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                  <Link href={`/pages/blog/${place.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                <CarouselItem key={place._id.toString() || place.title} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                  <Link href="/pages/lugares">
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-gray-100">
                       <div className="aspect-video relative overflow-hidden">
                         <Image
                           src={place.heroImage}
-                          alt={place.name}
+                          alt={place.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <PinButton 
-                            placeId={place._id} 
-                            placeName={place.name}
+                            placeId={place._id.toString()} 
+                            placeName={place.title}
                             className="bg-white/90 backdrop-blur-sm"
                           />
                         </div>
@@ -156,7 +156,7 @@ export default async function Home() {
                           <MapPin className="w-4 h-4 text-green-600" />
                           <span className="text-sm text-green-600 font-medium">Destino</span>
                         </div>
-                        <h3 className="font-bold text-xl mb-2 text-gray-900 group-hover:text-green-600 transition-colors duration-300">{place.name}</h3>
+                        <h3 className="font-bold text-xl mb-2 text-gray-900 group-hover:text-green-600 transition-colors duration-300">{place.title}</h3>
                         <p className="text-gray-600 mb-4">{place.location}</p>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-1">
@@ -220,11 +220,11 @@ export default async function Home() {
               <CarouselContent className="-ml-4">
                 {featuredProducts.map((product: any) => (
                   <CarouselItem key={product._id.toString() || product.name} className="pl-4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-                    <Link href={`/pages/shop/${product.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <Link href={`/pages/shop/${product._id.toString()}`}>
                       <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-gray-100">
                         <div className="aspect-square relative overflow-hidden">
                           <Image
-                            src={product.heroImage}
+                            src={product.images?.[0] || '/placeholder-image.jpg'}
                             alt={product.name}
                             fill
                             className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -234,6 +234,9 @@ export default async function Home() {
                             <CartButton 
                               productId={product._id.toString()} 
                               productName={product.name}
+                              productPrice={product.price}
+                              productCurrency={product.currency || 'USD'}
+                              productImage={product.images?.[0] || '/placeholder-image.jpg'}
                               className="bg-white/90 backdrop-blur-sm"
                             />
                           </div>

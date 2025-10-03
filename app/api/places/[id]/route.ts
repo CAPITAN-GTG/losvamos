@@ -10,7 +10,7 @@ export async function GET(
     await connectDB();
     
     const { id } = await params;
-    const place = await Place.findOne({ name: { $regex: new RegExp(id, 'i') } });
+    const place = await Place.findOne({ title: { $regex: new RegExp(id, 'i') } });
     
     if (!place) {
       return NextResponse.json(
@@ -39,7 +39,7 @@ export async function PUT(
     const body = await request.json();
     
     const place = await Place.findOneAndUpdate(
-      { name: { $regex: new RegExp(id, 'i') } },
+      { title: { $regex: new RegExp(id, 'i') } },
       { ...body, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
@@ -68,7 +68,7 @@ export async function DELETE(
     await connectDB();
     
     const { id } = await params;
-    const place = await Place.findOneAndDelete({ name: { $regex: new RegExp(id, 'i') } });
+    const place = await Place.findOneAndDelete({ title: { $regex: new RegExp(id, 'i') } });
     
     if (!place) {
       return NextResponse.json(

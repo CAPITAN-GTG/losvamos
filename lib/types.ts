@@ -1,21 +1,13 @@
 export interface Place {
   _id?: string;
-  name: string;
-  description: string;
-  content?: string;
-  location: string;
-  address?: string;
+  title: string;
+  subtitle: string;
+  date: string;
   heroImage: string;
+  description: string;
+  location: string;
   gallery: string[];
-  category: string;
-  rating?: number;
-  priceRange?: '$' | '$$' | '$$$' | '$$$$';
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-  amenities?: string[];
-  date?: string;
+  pins?: string[]; // Array of user IDs who pinned this place
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -34,11 +26,10 @@ export interface Product {
   longDescription?: string;
   price: number;
   currency?: string;
-  heroImage: string;
-  gallery?: string[];
+  images: string[];
   category: string;
+  quantity?: number;
   inStock?: boolean;
-  stockQuantity?: number;
   tags?: ProductTag[];
   sizes?: string[];
   colors?: string[];

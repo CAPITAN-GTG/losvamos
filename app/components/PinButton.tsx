@@ -4,11 +4,6 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Pin, PinOff } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { 
-  addPinnedPlace, 
-  removePinnedPlace, 
-  isPlacePinned 
-} from '@/lib/cookie-utils';
 
 interface PinButtonProps {
   placeId: string;
@@ -20,12 +15,26 @@ export default function PinButton({ placeId, placeName, className = '' }: PinBut
   const { user, isLoaded } = useUser();
   const [isPinned, setIsPinned] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [pinCount, setPinCount] = useState(0);
 
   useEffect(() => {
-    if (isLoaded && user) {
-      setIsPinned(isPlacePinned(placeId, user.id));
+    if (isLoaded && user && placeId) {
+      fetchPinStatus();
     }
   }, [placeId, user, isLoaded]);
+
+  const fetchPinStatus = async () => {
+    try {
+      const response = await fetch(`/api/places/${placeId}/pins?userId=${user?.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsPinned(data.isPinned);
+        setPinCount(data.pinCount);
+      }
+    } catch (error) {
+      console.error('Error fetching pin status:', error);
+    }
+  };
 
   const handlePinToggle = async () => {
     if (!user) {
@@ -36,16 +45,29 @@ export default function PinButton({ placeId, placeName, className = '' }: PinBut
     setIsLoading(true);
     
     try {
-      if (isPinned) {
-        removePinnedPlace(placeId, user.id);
-        setIsPinned(false);
-        toast.success(`${placeName} eliminado de guardados`);
+      const response = await fetch(`/api/places/${placeId}/pins`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsPinned(data.isPinned);
+        setPinCount(data.pinCount);
+        
+        if (data.isPinned) {
+          toast.success(`${placeName} guardado en tu lista`);
+        } else {
+          toast.success(`${placeName} eliminado de guardados`);
+        }
       } else {
-        addPinnedPlace(placeId, user.id);
-        setIsPinned(true);
-        toast.success(`${placeName} guardado en tu lista`);
+        throw new Error('Failed to toggle pin');
       }
     } catch (error) {
+      console.error('Error toggling pin:', error);
       toast.error('Error al actualizar la lista');
     } finally {
       setIsLoading(false);

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { X, Upload, Plus, Image as ImageIcon } from 'lucide-react';
+import { X, Plus, Image as ImageIcon } from 'lucide-react';
+import { uploadToCloudinary, dataURLtoFile, validateImageFile } from '@/lib/cloudinary-utils';
 
 interface ProductFormProps {
   onClose: () => void;
@@ -15,18 +16,28 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
     description: '',
     price: '',
     category: '',
-    heroImage: '',
-    gallery: [] as string[],
+    images: [] as string[],
+    quantity: '',
     tags: [] as Array<{type: string, value: string, label: string}>,
+    sizes: [] as string[],
+    colors: [] as string[],
     isActive: true
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [newTag, setNewTag] = useState('');
-  const [newGalleryImage, setNewGalleryImage] = useState('');
-  const [heroImagePreview, setHeroImagePreview] = useState('');
-  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
-  const heroImageRef = useRef<HTMLInputElement>(null);
-  const galleryImageRef = useRef<HTMLInputElement>(null);
+  const [newSize, setNewSize] = useState('');
+  const [newColor, setNewColor] = useState('');
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const imageRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -53,28 +64,113 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
     }));
   };
 
-  const handleAddGalleryImage = () => {
-    if (newGalleryImage.trim() && !formData.gallery.includes(newGalleryImage.trim())) {
+  const handleImageSelection = (files: File[]) => {
+    const validFiles: File[] = [];
+    
+    files.forEach(file => {
+      if (validateImageFile(file, 10)) {
+        validFiles.push(file);
+      }
+    });
+
+    if (validFiles.length === 0) {
+      return;
+    }
+
+    // Store files locally
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+
+    // Create preview URLs
+    validFiles.forEach(file => {
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreviews(prev => [...prev, previewUrl]);
+    });
+
+    toast.success(`${validFiles.length} imagen${validFiles.length > 1 ? 'es' : ''} seleccionada${validFiles.length > 1 ? 's' : ''}`);
+  };
+
+  const handleRemoveImage = (index: number) => {
+    // Remove from selected files
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    
+    // Remove from previews and revoke object URL
+    setImagePreviews(prev => {
+      const newPreviews = [...prev];
+      URL.revokeObjectURL(newPreviews[index]);
+      return newPreviews.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleReorderImages = (dragIndex: number, hoverIndex: number) => {
+    const newFiles = [...selectedFiles];
+    const draggedFile = newFiles[dragIndex];
+    newFiles.splice(dragIndex, 1);
+    newFiles.splice(hoverIndex, 0, draggedFile);
+    
+    setSelectedFiles(newFiles);
+    
+    // Update previews
+    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+    setImagePreviews(newPreviews);
+  };
+
+  const handleAddSize = () => {
+    if (newSize.trim() && !formData.sizes.includes(newSize.trim())) {
       setFormData(prev => ({
         ...prev,
-        gallery: [...prev.gallery, newGalleryImage.trim()]
+        sizes: [...prev.sizes, newSize.trim()]
       }));
-      setNewGalleryImage('');
+      setNewSize('');
+      toast.success('Talla agregada');
     }
   };
 
-  const handleRemoveGalleryImage = (imageToRemove: string) => {
+  const handleRemoveSize = (sizeToRemove: string) => {
     setFormData(prev => ({
       ...prev,
-      gallery: prev.gallery.filter(image => image !== imageToRemove)
+      sizes: prev.sizes.filter(size => size !== sizeToRemove)
+    }));
+  };
+
+  const handleAddColor = () => {
+    if (newColor.trim() && !formData.colors.includes(newColor.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        colors: [...prev.colors, newColor.trim()]
+      }));
+      setNewColor('');
+      toast.success('Color agregado');
+    }
+  };
+
+  const handleRemoveColor = (colorToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      colors: prev.colors.filter(color => color !== colorToRemove)
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (selectedFiles.length === 0) {
+      toast.error('Al menos una imagen es requerida');
+      return;
+    }
+
     setIsLoading(true);
+    setUploading(true);
 
     try {
+      // Upload images to Cloudinary
+      const uploadedImages: string[] = [];
+      
+      for (const file of selectedFiles) {
+        const result = await uploadToCloudinary(file, 'losvamos/products');
+        uploadedImages.push(result.secure_url);
+      }
+
+      // Submit form with uploaded image URLs
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: {
@@ -82,9 +178,10 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
         },
         body: JSON.stringify({
           ...formData,
+          images: uploadedImages,
           price: parseFloat(formData.price),
-          inStock: true,
-          stockQuantity: 0,
+          quantity: parseInt(formData.quantity) || 0,
+          inStock: parseInt(formData.quantity) > 0,
           currency: 'USD'
         }),
       });
@@ -99,8 +196,10 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
       }
     } catch (error) {
       toast.error('Error al crear el producto');
+      console.error('Create product error:', error);
     } finally {
       setIsLoading(false);
+      setUploading(false);
     }
   };
 
@@ -149,6 +248,22 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
                 min="0"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                 placeholder="29.99"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cantidad *
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleInputChange}
+                required
+                min="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                placeholder="100"
               />
             </div>
           </div>
@@ -202,71 +317,94 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
             </div>
           </div>
 
-          {/* Hero Image */}
+          {/* Product Images */}
           <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Imagen Principal *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Imágenes del Producto *
             </label>
             <div className="space-y-4">
               {/* File Upload Button */}
               <div
-                onClick={() => heroImageRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors"
+                onClick={() => !uploading && imageRef.current?.click()}
+                className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors ${
+                  uploading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                {heroImagePreview ? (
-                  <div className="space-y-2">
-                    <img
-                      src={heroImagePreview}
-                      alt="Preview"
-                      className="mx-auto h-32 w-auto object-cover rounded-lg"
-                    />
-                    <p className="text-sm text-gray-600">Click para cambiar imagen</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <p className="text-sm text-gray-600">Click para subir imagen</p>
-                    <p className="text-xs text-gray-500">PNG, JPG, GIF hasta 10MB</p>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="text-sm text-gray-600">
+                    {uploading ? 'Subiendo imagen...' : 'Click para subir imágenes'}
+                  </p>
+                  <p className="text-xs text-gray-500">PNG, JPG, GIF hasta 10MB cada una</p>
+                  <p className="text-xs text-gray-500">La primera imagen será la principal</p>
+                </div>
               </div>
               <input
-                ref={heroImageRef}
+                ref={imageRef}
                 type="file"
                 accept="image/*"
+                multiple
+                disabled={uploading}
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                      toast.error('El archivo es demasiado grande. Máximo 10MB.');
-                      return;
-                    }
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                      const result = e.target?.result as string;
-                      setHeroImagePreview(result);
-                      setFormData(prev => ({ ...prev, heroImage: result }));
-                      toast.success('Imagen cargada exitosamente');
-                    };
-                    reader.readAsDataURL(file);
-                  }
+                  const files = Array.from(e.target.files || []);
+                  handleImageSelection(files);
                 }}
                 className="hidden"
               />
-              
-              {/* URL Input as fallback */}
-              <div className="mt-2">
-                <label className="block text-xs text-gray-500 mb-1">O pegar URL de imagen:</label>
-                <input
-                  type="url"
-                  name="heroImage"
-                  value={formData.heroImage}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm"
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                />
-              </div>
             </div>
+
+            {/* Image Gallery */}
+            {imagePreviews.length > 0 && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-gray-600">
+                    {imagePreviews.length} imagen{imagePreviews.length !== 1 ? 'es' : ''} 
+                    {imagePreviews.length > 0 && (
+                      <span className="ml-1 text-green-600">
+                        (Primera imagen = Principal)
+                      </span>
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => imageRef.current?.click()}
+                    disabled={uploading}
+                    className="text-sm text-green-600 hover:text-green-700 disabled:opacity-50"
+                  >
+                    + Agregar más
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-square relative rounded-lg overflow-hidden border-2 border-gray-200">
+                        <img
+                          src={preview}
+                          alt={`Product image ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {index === 0 && (
+                          <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            Principal
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                          {index + 1}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Tags */}
@@ -310,91 +448,84 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
             </div>
           </div>
 
-          {/* Gallery Images */}
+          {/* Sizes */}
           <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Galería de Imágenes
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tallas Disponibles
             </label>
-            <div className="space-y-4">
-              {/* File Upload Button */}
-              <div
-                onClick={() => galleryImageRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500 transition-colors"
-              >
-                <div className="space-y-2">
-                  <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                  <p className="text-sm text-gray-600">Click para agregar imagen a la galería</p>
-                  <p className="text-xs text-gray-500">PNG, JPG, GIF hasta 10MB</p>
-                </div>
-              </div>
+            <div className="flex space-x-2 mb-2">
               <input
-                ref={galleryImageRef}
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                      toast.error('El archivo es demasiado grande. Máximo 10MB.');
-                      return;
-                    }
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                      const result = e.target?.result as string;
-                      setFormData(prev => ({
-                        ...prev,
-                        gallery: [...prev.gallery, result]
-                      }));
-                      setGalleryPreviews(prev => [...prev, result]);
-                      toast.success('Imagen agregada a la galería');
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-                className="hidden"
+                type="text"
+                value={newSize}
+                onChange={(e) => setNewSize(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                placeholder="Ej: S, M, L, XL"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSize())}
               />
-              
-              {/* URL Input as fallback */}
-              <div className="flex space-x-2">
-                <input
-                  type="url"
-                  value={newGalleryImage}
-                  onChange={(e) => setNewGalleryImage(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm"
-                  placeholder="O pegar URL de imagen"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddGalleryImage())}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddGalleryImage}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleAddSize}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {formData.gallery.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={image}
-                    alt={`Gallery ${index + 1}`}
-                    className="w-full h-20 object-cover rounded-lg"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                    }}
-                  />
+            <div className="flex flex-wrap gap-2">
+              {formData.sizes.map((size, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                >
+                  {size}
                   <button
                     type="button"
-                    onClick={() => {
-                      handleRemoveGalleryImage(image);
-                      setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
-                    }}
-                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemoveSize(size)}
+                    className="ml-2 text-blue-600 hover:text-blue-800"
                   >
                     <X className="w-3 h-3" />
                   </button>
-                </div>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Colors */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Colores Disponibles
+            </label>
+            <div className="flex space-x-2 mb-2">
+              <input
+                type="text"
+                value={newColor}
+                onChange={(e) => setNewColor(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                placeholder="Ej: Rojo, Azul, Verde"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddColor())}
+              />
+              <button
+                type="button"
+                onClick={handleAddColor}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {formData.colors.map((color, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                >
+                  {color}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveColor(color)}
+                    className="ml-2 text-purple-600 hover:text-purple-800"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
               ))}
             </div>
           </div>
@@ -404,16 +535,17 @@ export default function ProductForm({ onClose, onSuccess }: ProductFormProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-black bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              disabled={isLoading || uploading}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || uploading || imagePreviews.length === 0}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creando...' : 'Crear Producto'}
+              {isLoading ? 'Creando...' : uploading ? 'Subiendo...' : 'Crear Producto'}
             </button>
           </div>
         </form>
