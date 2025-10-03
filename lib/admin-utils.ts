@@ -19,18 +19,13 @@ export function isAdmin(user: any | null | undefined): boolean {
  */
 export function isAdminClient(userId: string | null | undefined): boolean {
   if (!userId) {
-    console.log('Admin check: No userId provided');
     return false;
   }
   
   // For client-side, we need to use NEXT_PUBLIC_ prefix
   const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER;
-  console.log('Admin check - User ID:', userId);
-  console.log('Admin check - Admin User ID:', adminUserId);
-  console.log('Admin check - Match:', userId === adminUserId);
   
   if (!adminUserId) {
-    console.log('Admin check: No admin user ID set in environment');
     return false;
   }
   

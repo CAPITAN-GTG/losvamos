@@ -1,85 +1,147 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
 import Navigation from "../../components/Navigation";
-import PinButton from "../../components/PinButton";
-import CartButton from "../../components/CartButton";
-import { placesApi } from "@/lib/api-utils";
-import { Star, ArrowRight } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
+import Pagination from "../../components/ui/pagination";
+import { useState, useEffect } from "react";
 
-export default async function Lugares() {
-  const { places } = await placesApi.getAll({ limit: 100 });
-  return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
+export default function Lugares() {
+  const [places, setPlaces] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const itemsPerPage = 12;
 
-      {/* Hero Section */}
-      <div className="bg-green-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
-              Lugares para Explorar
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl mb-0 sm:mb-8 max-w-3xl mx-auto text-white">
-              Descubre lugares increíbles alrededor del mundo
-            </p>
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const response = await fetch('/api/places');
+        if (response.ok) {
+          const data = await response.json();
+          setPlaces(data.places || []);
+        } else {
+          // Failed to fetch places
+        }
+      } catch (error) {
+        // Error fetching places
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlaces();
+  }, []);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const filteredPlaces = places.filter(place => 
+    place.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    place.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getPaginatedPlaces = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredPlaces.slice(startIndex, endIndex);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6 animate-pulse"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow-sm overflow-hidden animate-pulse">
+                <div className="aspect-video bg-gray-200"></div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Places Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-          {places.map((place: any) => (
-            <div key={place._id.toString()} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group hover:scale-105">
-              <Link href={`/pages/lugares/${place._id}`} className="block">
-                <div className="aspect-video relative">
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+
+      {/* Simple Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Lugares para Explorar</h1>
+          
+          {/* Search Bar */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Buscar lugares..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black placeholder-gray-500"
+            />
+          </div>
+        </div>
+
+        {/* Places Grid */}
+        {filteredPlaces.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {searchTerm ? 'No se encontraron lugares' : 'No hay lugares disponibles'}
+            </h3>
+            <p className="text-gray-600">
+              {searchTerm ? 'Intenta con otros términos de búsqueda.' : 'Pronto agregaremos más lugares increíbles para explorar.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {getPaginatedPlaces().map((place: any) => (
+                <Link 
+                  key={place._id.toString()} 
+                  href={`/pages/lugares/${place._id}`}
+                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group relative aspect-video cursor-pointer hover:outline hover:outline-4 hover:outline-blue-500 hover:outline-offset-2"
+                >
                   <Image
                     src={place.heroImage}
                     alt={place.title}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-              </Link>
-              
-              {/* Always visible action buttons */}
-              <div className="absolute top-3 right-3 flex flex-col space-y-2">
-                <PinButton 
-                  placeId={place._id.toString()} 
-                  placeName={place.title}
-                  className="bg-white/90 backdrop-blur-sm shadow-md"
-                />
-                <CartButton 
-                  productId={place._id.toString()}
-                  productName={place.title}
-                  productPrice={0}
-                  productCurrency="USD"
-                  productImage={place.heroImage}
-                  className="bg-white/90 backdrop-blur-sm shadow-md text-xs px-2 py-1"
-                />
-              </div>
-              
-              <div className="p-4">
-                <Link href={`/pages/lugares/${place._id}`}>
-                  <h3 className="font-semibold text-base sm:text-lg mb-2 text-gray-900 group-hover:text-green-600 transition-colors">{place.title}</h3>
-                </Link>
-                <p className="text-gray-700 mb-2 text-sm sm:text-base">{place.location}</p>
-                <p className="text-xs sm:text-sm text-gray-600">{new Date(place.date).toLocaleDateString('es-ES')}</p>
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm font-medium text-gray-700">4.8</span>
+                  
+                  {/* Dark overlay for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                  
+                  {/* Text overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                    <h3 className="font-bold text-lg mb-1 line-clamp-2 group-hover:text-blue-200 transition-colors duration-300">{place.title}</h3>
+                    <p className="text-sm text-gray-200 line-clamp-1 group-hover:text-blue-100 transition-colors duration-300">{place.location}</p>
                   </div>
-                  <Link href={`/pages/lugares/${place._id}`} className="flex items-center space-x-1 text-green-600 group-hover:text-green-700 transition-colors">
-                    <span className="text-sm font-medium">Explorar</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Link>
-                </div>
-              </div>
+                </Link>
+              ))}
             </div>
-          ))}
-        </div>
+
+            {/* Pagination */}
+            {filteredPlaces.length > itemsPerPage && (
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <Pagination
+                  totalItems={filteredPlaces.length}
+                  itemsPerPage={itemsPerPage}
+                  currentPage={currentPage}
+                  onPageChange={handlePageChange}
+                  className="justify-center"
+                />
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

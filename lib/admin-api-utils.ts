@@ -7,7 +7,6 @@ export async function getProducts() {
     const data = await response.json();
     return data.products || [];
   } catch (error) {
-    console.error('Error fetching products:', error);
     return [];
   }
 }
@@ -19,7 +18,6 @@ export async function getPlaces() {
     const data = await response.json();
     return data.places || [];
   } catch (error) {
-    console.error('Error fetching places:', error);
     return [];
   }
 }
@@ -38,7 +36,6 @@ export async function editProduct(id: string, productData: any) {
     if (!response.ok) throw new Error('Failed to update product');
     return await response.json();
   } catch (error) {
-    console.error('Error updating product:', error);
     throw error;
   }
 }
@@ -56,7 +53,6 @@ export async function editPlace(id: string, placeData: any) {
     if (!response.ok) throw new Error('Failed to update place');
     return await response.json();
   } catch (error) {
-    console.error('Error updating place:', error);
     throw error;
   }
 }
@@ -71,7 +67,6 @@ export async function deleteProduct(id: string) {
     if (!response.ok) throw new Error('Failed to delete product');
     return await response.json();
   } catch (error) {
-    console.error('Error deleting product:', error);
     throw error;
   }
 }
@@ -85,7 +80,6 @@ export async function deletePlace(id: string) {
     if (!response.ok) throw new Error('Failed to delete place');
     return await response.json();
   } catch (error) {
-    console.error('Error deleting place:', error);
     throw error;
   }
 }

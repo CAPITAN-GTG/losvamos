@@ -16,7 +16,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       places: JSON.parse(JSON.stringify(places))
     });
   } catch (error) {
-    console.error('Get pinned places error:', error);
     return NextResponse.json(
       { error: 'Failed to get pinned places' },
       { status: 500 }

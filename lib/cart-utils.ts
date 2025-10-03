@@ -36,7 +36,6 @@ export function getCart(userId: string): Cart {
       itemCount: cart.itemCount || 0
     };
   } catch (error) {
-    console.error('Error getting cart from localStorage:', error);
     return { items: [], total: 0, itemCount: 0 };
   }
 }
@@ -49,7 +48,7 @@ export function saveCart(userId: string, cart: Cart): void {
     const cartKey = `cart_${userId}`;
     localStorage.setItem(cartKey, JSON.stringify(cart));
   } catch (error) {
-    console.error('Error saving cart to localStorage:', error);
+    // Error saving cart to localStorage
   }
 }
 
@@ -137,7 +136,7 @@ export function clearCart(userId: string): void {
     const cartKey = `cart_${userId}`;
     localStorage.removeItem(cartKey);
   } catch (error) {
-    console.error('Error clearing cart:', error);
+    // Error clearing cart
   }
 }
 

@@ -45,7 +45,6 @@ export async function uploadToCloudinary(
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
     throw new Error('Failed to upload image to Cloudinary');
   }
 }
@@ -64,7 +63,6 @@ export async function uploadMultipleToCloudinary(
     const uploadPromises = files.map(file => uploadToCloudinary(file, folder));
     return await Promise.all(uploadPromises);
   } catch (error) {
-    console.error('Multiple Cloudinary upload error:', error);
     throw new Error('Failed to upload images to Cloudinary');
   }
 }

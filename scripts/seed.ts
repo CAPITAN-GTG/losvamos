@@ -100,29 +100,18 @@ const productsData = [
 
 async function seedDatabase() {
   try {
-    console.log('Starting database seeding...');
     await connectDB();
-    console.log('Database connected');
     
     // Clear existing data
-    console.log('Clearing existing data...');
     await Place.deleteMany({});
     await Product.deleteMany({});
-    console.log('Existing data cleared');
     
     // Insert new data
-    console.log('Inserting places...');
     const insertedPlaces = await Place.insertMany(placesData);
-    console.log(`Inserted ${insertedPlaces.length} places`);
-    
-    console.log('Inserting products...');
     const insertedProducts = await Product.insertMany(productsData);
-    console.log(`Inserted ${insertedProducts.length} products`);
-    
-    console.log('Database seeding completed successfully!');
     
   } catch (error) {
-    console.error('Error seeding database:', error);
+    // Error seeding database
   } finally {
     process.exit(0);
   }

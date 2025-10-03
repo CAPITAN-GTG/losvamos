@@ -6,12 +6,10 @@ let cached: { conn: any; promise: any } | null = null;
 async function connectDB() {
   // Prevent recursive calls
   if (cached && cached.promise) {
-    console.log('Database connection already in progress, waiting...');
     return await cached.promise;
   }
 
   if (cached && cached.conn) {
-    console.log('Database already connected');
     return cached.conn;
   }
 
@@ -21,8 +19,6 @@ async function connectDB() {
     throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
   }
 
-  console.log('Starting database connection...');
-  
   if (!cached) {
     cached = { conn: null, promise: null };
   }
@@ -33,9 +29,7 @@ async function connectDB() {
 
   try {
     cached.conn = await cached.promise;
-    console.log('Database connected successfully');
   } catch (e) {
-    console.error('Database connection failed:', e);
     cached.promise = null;
     throw e;
   }

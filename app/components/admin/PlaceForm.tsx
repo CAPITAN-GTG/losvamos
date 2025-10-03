@@ -191,7 +191,7 @@ export default function PlaceForm({ onClose, onSuccess, editingPlace }: PlaceFor
     } catch (error) {
       const message = editingPlace ? 'Error al actualizar el lugar' : 'Error al crear el lugar';
       toast.error(message);
-      console.error('Place operation error:', error);
+      // Place operation error
     } finally {
       setIsLoading(false);
       setUploading(false);

@@ -1,14 +1,42 @@
+'use client';
+
 import Image from "next/image";
+import Link from "next/link";
 import Navigation from "../../components/Navigation";
-import { MapPin, Compass, Globe, Navigation as NavigationIcon } from "lucide-react";
+import { MapPin, ArrowRight, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function MapaPage() {
+  const [featuredPlaces, setFeaturedPlaces] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedPlaces = async () => {
+      try {
+        const response = await fetch('/api/places');
+        if (response.ok) {
+          const data = await response.json();
+          const places = data.places || [];
+          // Get 3 random places
+          const shuffled = places.sort(() => 0.5 - Math.random());
+          setFeaturedPlaces(shuffled.slice(0, 3));
+        }
+      } catch (error) {
+        console.error('Error fetching places:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeaturedPlaces();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
 
-      {/* Hero Section */}
-      <div className="relative h-[60vh] min-h-[400px] flex items-center justify-center overflow-hidden">
+      {/* Clean Hero Section */}
+      <div className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         {/* Hero Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -18,22 +46,14 @@ export default function MapaPage() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black/60"></div>
-        </div>
-
-        {/* Floating Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-16 h-16 bg-green-100 rounded-full blur-xl animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-24 h-24 bg-blue-200 rounded-full blur-2xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-20 left-1/4 w-20 h-20 bg-green-100 rounded-full blur-xl animate-pulse delay-2000"></div>
+          <div className="absolute inset-0 bg-black/50"></div>
         </div>
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 mb-8 border border-white/30">
-            <Compass className="w-4 h-4 text-white" />
-            <span className="text-white text-sm font-medium">Explora el Mapa</span>
+          <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-white/20">
+            <Globe className="w-4 h-4 text-white" />
+            <span className="text-white text-sm font-medium">Mapa Interactivo</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
@@ -43,101 +63,101 @@ export default function MapaPage() {
             </span>
           </h1>
           <p className="text-xl sm:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Descubre todos los lugares increíbles que hemos explorado y los que están por venir
+            Explora todos los lugares increíbles que hemos visitado
           </p>
         </div>
       </div>
 
-      {/* Map Section */}
-      <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-8 py-16">
-        <div className="text-center mb-12 px-4 sm:px-0">
-          <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 rounded-full px-4 py-2 mb-6">
-            <Globe className="w-4 h-4" />
-            <span className="text-sm font-medium">Mapa Interactivo</span>
+      {/* Map Section - With Container and Separation */}
+      <div className="bg-white border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Mapa Interactivo</h2>
+            <p className="text-gray-600">Explora nuestros destinos en el mapa</p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            Explora Nuestros
-            <span className="block text-green-600">Destinos</span>
-          </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Haz clic en los marcadores para descubrir más información sobre cada lugar que hemos visitado
-          </p>
-        </div>
-
-        {/* Map Container */}
-        <div className="bg-white rounded-none md:rounded-2xl shadow-2xl overflow-hidden border-0 md:border border-gray-200">
-          <div className="aspect-video w-full md:aspect-video h-[60vh] md:h-auto">
-            <iframe
-              src="https://www.google.com/maps/d/u/0/embed?mid=10N1FB26A46oMpTMyEC36jZwXqIY&femb=1&ll=35.38739382230657%2C-109.02474495000001&z=4"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Los Vamos Adventure Map"
-              className="w-full h-full"
-            ></iframe>
+          
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+            <div className="h-[60vh] md:h-[70vh]">
+              <iframe
+                src="https://www.google.com/maps/d/u/0/embed?mid=10N1FB26A46oMpTMyEC36jZwXqIY&femb=1&ll=35.38739382230657%2C-109.02474495000001&z=4"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Los Vamos Adventure Map"
+                className="w-full h-full"
+              ></iframe>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Map Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 px-4 sm:px-0">
-          <div className="text-center p-6 bg-green-50 rounded-2xl border border-green-100">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MapPin className="w-8 h-8 text-green-600" />
+      {/* Featured Places Section */}
+      <div className="bg-gray-50 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 rounded-full px-4 py-2 mb-6">
+              <MapPin className="w-4 h-4" />
+              <span className="text-sm font-medium">Lugares Destacados</span>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Lugares Destacados</h3>
-            <p className="text-gray-600">
-              Descubre los destinos más increíbles que hemos explorado en nuestras aventuras
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Lugares Destacados</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Descubre algunos de los destinos más increíbles que hemos explorado en nuestras aventuras
             </p>
           </div>
 
-          <div className="text-center p-6 bg-blue-50 rounded-2xl border border-blue-100">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <NavigationIcon className="w-8 h-8 text-blue-600" />
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse border border-gray-100">
+                  <div className="aspect-video bg-gray-200"></div>
+                  <div className="p-6">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Rutas de Viaje</h3>
-            <p className="text-gray-600">
-              Sigue nuestras rutas recomendadas para una experiencia de viaje completa
-            </p>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredPlaces.map((place) => (
+                <Link 
+                  key={place._id} 
+                  href={`/pages/lugares/${place._id}`}
+                  className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 group relative aspect-video cursor-pointer hover:outline hover:outline-4 hover:outline-blue-500 hover:outline-offset-2 border border-gray-100"
+                >
+                  <Image
+                    src={place.heroImage}
+                    alt={place.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  
+                  {/* Dark overlay for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                  
+                  {/* Text overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <h3 className="font-bold text-lg mb-1 line-clamp-2 group-hover:text-blue-200 transition-colors duration-300">{place.title}</h3>
+                    <p className="text-sm text-gray-200 line-clamp-1 group-hover:text-blue-100 transition-colors duration-300">{place.location}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
 
-          <div className="text-center p-6 bg-purple-50 rounded-2xl border border-purple-100">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Compass className="w-8 h-8 text-purple-600" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Próximos Destinos</h3>
-            <p className="text-gray-600">
-              Mantente al día con los lugares que estamos planeando visitar próximamente
-            </p>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="text-center mt-16 px-4 sm:px-0">
-          <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white">
-            <h3 className="text-2xl sm:text-3xl font-bold mb-4">
-              ¿Listo para tu próxima aventura?
-            </h3>
-            <p className="text-lg mb-6 opacity-90">
-              Explora nuestros lugares favoritos y planifica tu propio viaje
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="/pages/lugares"
-                className="inline-flex items-center space-x-2 bg-white text-green-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors duration-300"
-              >
-                <MapPin className="w-5 h-5" />
-                <span>Ver Lugares</span>
-              </a>
-              <a
-                href="/pages/shop"
-                className="inline-flex items-center space-x-2 border-2 border-white text-white px-6 py-3 rounded-xl font-semibold hover:bg-white hover:text-green-600 transition-colors duration-300"
-              >
-                <span>Equipamiento</span>
-              </a>
-            </div>
+          {/* View All Button */}
+          <div className="text-center mt-16 pt-8 border-t border-gray-200">
+            <Link
+              href="/pages/lugares"
+              className="inline-flex items-center space-x-2 bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
+            >
+              <MapPin className="w-5 h-5" />
+              <span>Explorar Todos los Lugares</span>
+              <ArrowRight className="w-5 h-5" />
+            </Link>
           </div>
         </div>
       </div>

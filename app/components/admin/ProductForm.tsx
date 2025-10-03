@@ -237,7 +237,7 @@ export default function ProductForm({ onClose, onSuccess, editingProduct }: Prod
     } catch (error) {
       const message = editingProduct ? 'Error al actualizar el producto' : 'Error al crear el producto';
       toast.error(message);
-      console.error('Product operation error:', error);
+      // Product operation error
     } finally {
       setIsLoading(false);
       setUploading(false);

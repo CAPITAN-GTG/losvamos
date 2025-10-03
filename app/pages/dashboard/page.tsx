@@ -32,7 +32,7 @@ export default function Dashboard() {
             setPinnedPlaces(data.places);
           }
         } catch (error) {
-          console.error('Error fetching pinned places:', error);
+          // Error fetching pinned places
         } finally {
           setIsLoadingPinned(false);
         }
@@ -85,81 +85,50 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
-      {/* Header */}
+      {/* Compact Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <User className="w-8 h-8 text-green-600" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <User className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  ¡Hola, {user.firstName || 'Explorador'}!
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Tu centro de control de aventuras
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                ¡Hola, {user.firstName || 'Explorador'}!
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Bienvenido a tu centro de control de aventuras
-              </p>
+            <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <span>{pinnedPlaces.length} lugares guardados</span>
+              <span>•</span>
+              <span>{cartItems} items en carrito</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Dashboard Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Lugares Guardados</p>
-                <p className="text-2xl font-bold text-gray-900">{pinnedPlaces.length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <ShoppingBag className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Items en Carrito</p>
-                <p className="text-2xl font-bold text-gray-900">{cartItems}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Star className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Experiencias</p>
-                <p className="text-2xl font-bold text-gray-900">{pinnedPlaces.length}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Pinned Places Section */}
-        <div className="mb-12">
+        <div>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Pin className="w-5 h-5 text-green-600" />
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <Pin className="w-4 h-4 text-green-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Lugares Guardados</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Lugares Guardados</h2>
                 <p className="text-sm text-gray-600">Tus lugares favoritos</p>
               </div>
             </div>
             <Link
               href="/pages/lugares"
-              className="flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors"
+              className="flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors text-sm"
             >
               <span>Ver todos</span>
               <ArrowRight className="w-4 h-4" />
@@ -167,65 +136,60 @@ export default function Dashboard() {
           </div>
 
           {isLoadingPinned ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
-                  <div className="w-full h-32 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-lg shadow-sm overflow-hidden animate-pulse">
+                  <div className="aspect-video bg-gray-200"></div>
                 </div>
               ))}
             </div>
           ) : pinnedPlaces.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {pinnedPlaces.map((place) => (
-                <div key={place._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md transition-shadow">
-                  <div className="relative h-32">
-                    <Image
-                      src={place.heroImage}
-                      alt={place.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                <Link 
+                  key={place._id} 
+                  href={`/pages/lugares/${place._id}`}
+                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group relative aspect-video cursor-pointer hover:outline hover:outline-4 hover:outline-blue-500 hover:outline-offset-2"
+                >
+                  <Image
+                    src={place.heroImage}
+                    alt={place.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  
+                  {/* Dark overlay for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                  
+                  {/* Pin Button - Fixed positioning and visibility */}
+                  <div className="absolute top-3 right-3 z-10">
+                    <PinButton 
+                      placeId={place._id} 
+                      placeName={place.title}
+                      className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70"
                     />
-                    <div className="absolute top-3 right-3">
-                      <PinButton 
-                        placeId={place._id} 
-                        placeName={place.title}
-                        className="bg-white/90 backdrop-blur-sm"
-                      />
-                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-1">{place.title}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{place.location}</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-medium text-gray-700">4.8</span>
-                      </div>
-                      <Link
-                        href={`/pages/lugares/${place._id}`}
-                        className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors"
-                      >
-                        Ver detalles
-                      </Link>
-                    </div>
+                  
+                  {/* Text overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                    <h3 className="font-bold text-lg mb-1 line-clamp-2 group-hover:text-blue-200 transition-colors duration-300">{place.title}</h3>
+                    <p className="text-sm text-gray-200 line-clamp-1 group-hover:text-blue-100 transition-colors duration-300">{place.location}</p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Pin className="w-8 h-8 text-gray-400" />
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Pin className="w-6 h-6 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No tienes lugares guardados</h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-4">
                 Comienza guardando lugares que te interesen para verlos aquí.
               </p>
               <Link
                 href="/pages/lugares"
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
               >
                 <MapPin className="w-4 h-4" />
                 <span>Explorar Lugares</span>

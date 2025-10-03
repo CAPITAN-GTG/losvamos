@@ -32,7 +32,7 @@ export default function PinButton({ placeId, placeName, className = '' }: PinBut
         setPinCount(data.pinCount);
       }
     } catch (error) {
-      console.error('Error fetching pin status:', error);
+      // Error fetching pin status
     }
   };
 
@@ -67,7 +67,7 @@ export default function PinButton({ placeId, placeName, className = '' }: PinBut
         throw new Error('Failed to toggle pin');
       }
     } catch (error) {
-      console.error('Error toggling pin:', error);
+      // Error toggling pin
       toast.error('Error al actualizar la lista');
     } finally {
       setIsLoading(false);
@@ -84,8 +84,8 @@ export default function PinButton({ placeId, placeName, className = '' }: PinBut
       disabled={isLoading}
       className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
         isPinned 
-          ? 'bg-green-500 text-white hover:bg-green-600' 
-          : 'bg-white/90 text-gray-600 hover:bg-green-100 hover:text-green-600'
+          ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg' 
+          : 'bg-white/90 text-gray-600 hover:bg-green-100 hover:text-green-600 shadow-md'
       } ${className}`}
       title={isPinned ? 'Quitar de guardados' : 'Guardar lugar'}
     >

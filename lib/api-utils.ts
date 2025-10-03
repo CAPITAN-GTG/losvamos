@@ -10,17 +10,12 @@ export const placesApi = {
     page?: number;
   }): Promise<{ places: PlaceType[]; pagination: any }> {
     try {
-      console.log('Places API: Connecting to database...');
       await connectDB();
-      console.log('Places API: Database connected');
       
       const query: any = { isActive: true };
       
       const limit = params?.limit || 10;
       const page = params?.page || 1;
-      
-      console.log('Places API: Query:', query);
-      console.log('Places API: Limit:', limit);
       
       const places = await Place.find(query)
         .limit(limit)
@@ -30,10 +25,7 @@ export const placesApi = {
       // Convert MongoDB documents to plain objects to avoid circular references
       const plainPlaces = JSON.parse(JSON.stringify(places));
       
-      console.log('Places API: Found places:', places.length);
-      
       const total = await Place.countDocuments(query);
-      console.log('Places API: Total places in DB:', total);
       
       return {
         places: plainPlaces,
@@ -45,7 +37,6 @@ export const placesApi = {
         }
       };
     } catch (error) {
-      console.error('Places API Error:', error);
       throw error;
     }
   },
@@ -134,15 +125,12 @@ export const productsApi = {
 
   async getByName(name: string): Promise<ProductType | null> {
     try {
-      console.log('Searching for product:', name);
       const product = await Product.findOne({ name: { $regex: new RegExp(name, 'i') } });
-      console.log('Product search result:', product ? product.name : 'null');
       if (!product) return null;
       
       // Convert MongoDB document to plain object to avoid circular references
       return JSON.parse(JSON.stringify(product));
     } catch (error) {
-      console.error('Error in getByName:', error);
       throw error;
     }
   },
@@ -189,25 +177,18 @@ export async function getPlaceById(id: string): Promise<PlaceType | null> {
 
 export async function getProductById(id: string): Promise<ProductType | null> {
   try {
-    console.log('getProductById called with:', id);
     await connectDB();
-    console.log('Database connected, calling getById');
     return await productsApi.getById(id);
   } catch (error) {
-    console.error('Error in getProductById:', error);
     throw error;
   }
 }
 
 export async function getFeaturedPlaces(): Promise<PlaceType[]> {
   try {
-    console.log('Fetching featured places...');
     const response = await placesApi.getAll({ limit: 3 });
-    console.log('Places found:', response.places.length);
-    console.log('Places:', response.places.map(p => p.title));
     return response.places;
   } catch (error) {
-    console.error('Error fetching featured places:', error);
     return [];
   }
 }

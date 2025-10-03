@@ -15,18 +15,11 @@ interface PageProps {
 export default async function ProductPage({ params }: PageProps) {
   try {
     const resolvedParams = await params;
-    console.log('Looking for product with ID:', resolvedParams.id);
-    
     const product = await getProductById(resolvedParams.id);
-    console.log('Found product:', product ? product.name : 'null');
 
     if (!product) {
-      console.log('Product not found, calling notFound()');
       notFound();
     }
-
-    // Product is already serialized from the API
-    console.log('Product loaded successfully');
 
     const groupedTags = product.tags?.reduce((acc, tag) => {
     if (!acc[tag.type]) {
@@ -171,7 +164,6 @@ export default async function ProductPage({ params }: PageProps) {
     </div>
   );
   } catch (error) {
-    console.error('Error in ProductPage:', error);
     throw error;
   }
 }

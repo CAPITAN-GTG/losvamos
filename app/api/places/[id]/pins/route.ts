@@ -44,7 +44,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       pinCount: place.pins?.length || 0
     });
   } catch (error) {
-    console.error('Pin toggle error:', error);
     return NextResponse.json(
       { error: 'Failed to toggle pin' },
       { status: 500 }
@@ -76,7 +75,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       pinCount
     });
   } catch (error) {
-    console.error('Get pin status error:', error);
     return NextResponse.json(
       { error: 'Failed to get pin status' },
       { status: 500 }

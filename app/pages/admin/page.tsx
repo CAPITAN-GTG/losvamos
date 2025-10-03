@@ -25,6 +25,7 @@ import {
   FileText,
   Globe
 } from 'lucide-react';
+import Pagination from '../../components/ui/pagination';
 
 export default function AdminDashboard() {
   const { user, isLoaded } = useUser();
@@ -37,6 +38,9 @@ export default function AdminDashboard() {
   const [dataLoading, setDataLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingPlace, setEditingPlace] = useState<any>(null);
+  const [placesCurrentPage, setPlacesCurrentPage] = useState(1);
+  const [productsCurrentPage, setProductsCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const refreshData = async () => {
     setDataLoading(true);
@@ -48,10 +52,30 @@ export default function AdminDashboard() {
       setProducts(productsData);
       setPlaces(placesData);
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      // Error refreshing data
     } finally {
       setDataLoading(false);
     }
+  };
+
+  const handlePlacesPageChange = (page: number) => {
+    setPlacesCurrentPage(page);
+  };
+
+  const handleProductsPageChange = (page: number) => {
+    setProductsCurrentPage(page);
+  };
+
+  const getPaginatedPlaces = () => {
+    const startIndex = (placesCurrentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return places.slice(startIndex, endIndex);
+  };
+
+  const getPaginatedProducts = () => {
+    const startIndex = (productsCurrentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return products.slice(startIndex, endIndex);
   };
 
   const handleEditProduct = (product: any) => {
@@ -71,7 +95,7 @@ export default function AdminDashboard() {
         await refreshData();
         alert('Producto eliminado exitosamente');
       } catch (error) {
-        console.error('Error deleting product:', error);
+        // Error deleting product
         alert('Error al eliminar el producto');
       }
     }
@@ -84,7 +108,7 @@ export default function AdminDashboard() {
         await refreshData();
         alert('Lugar eliminado exitosamente');
       } catch (error) {
-        console.error('Error deleting place:', error);
+        // Error deleting place
         alert('Error al eliminar el lugar');
       }
     }
@@ -279,47 +303,55 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               ) : places.length > 0 ? (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {places.slice(0, 5).map((place) => (
-                    <div key={place._id.toString()} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <img 
-                          src={place.heroImage} 
-                          alt={place.title}
-                          className="w-12 h-12 object-cover rounded-lg"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                          }}
-                        />
-                        <div>
-                          <p className="font-medium text-black">{place.title}</p>
-                          <p className="text-sm text-black">{place.location}</p>
+                <>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {getPaginatedPlaces().map((place) => (
+                      <div key={place._id.toString()} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={place.heroImage} 
+                            alt={place.title}
+                            className="w-12 h-12 object-cover rounded-lg"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                            }}
+                          />
+                          <div>
+                            <p className="font-medium text-black">{place.title}</p>
+                            <p className="text-sm text-black">{place.location}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button 
+                            onClick={() => handleEditPlace(place)}
+                            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                            title="Editar lugar"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeletePlace(place._id.toString(), place.title)}
+                            className="p-1 text-red-400 hover:text-red-600 transition-colors"
+                            title="Eliminar lugar"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <button 
-                          onClick={() => handleEditPlace(place)}
-                          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                          title="Editar lugar"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeletePlace(place._id.toString(), place.title)}
-                          className="p-1 text-red-400 hover:text-red-600 transition-colors"
-                          title="Eliminar lugar"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                    ))}
+                  </div>
+                  {places.length > itemsPerPage && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <Pagination
+                        totalItems={places.length}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={placesCurrentPage}
+                        onPageChange={handlePlacesPageChange}
+                        className="justify-center"
+                      />
                     </div>
-                  ))}
-                  {places.length > 5 && (
-                    <p className="text-sm text-black text-center pt-2">
-                      Y {places.length - 5} lugares más...
-                    </p>
                   )}
-                </div>
+                </>
               ) : (
                 <div className="text-center py-8">
                   <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
@@ -358,47 +390,55 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               ) : products.length > 0 ? (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {products.slice(0, 5).map((product) => (
-                    <div key={product._id.toString()} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <img 
-                          src={product.images?.[0] || '/placeholder-image.jpg'} 
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded-lg"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                          }}
-                        />
-                        <div>
-                          <p className="font-medium text-black">{product.name}</p>
-                          <p className="text-sm text-black">${product.price}</p>
+                <>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {getPaginatedProducts().map((product) => (
+                      <div key={product._id.toString()} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={product.images?.[0] || '/placeholder-image.jpg'} 
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded-lg"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                            }}
+                          />
+                          <div>
+                            <p className="font-medium text-black">{product.name}</p>
+                            <p className="text-sm text-black">${product.price}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button 
+                            onClick={() => handleEditProduct(product)}
+                            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                            title="Editar producto"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteProduct(product._id.toString(), product.name)}
+                            className="p-1 text-red-400 hover:text-red-600 transition-colors"
+                            title="Eliminar producto"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <button 
-                          onClick={() => handleEditProduct(product)}
-                          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                          title="Editar producto"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteProduct(product._id.toString(), product.name)}
-                          className="p-1 text-red-400 hover:text-red-600 transition-colors"
-                          title="Eliminar producto"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                    ))}
+                  </div>
+                  {products.length > itemsPerPage && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <Pagination
+                        totalItems={products.length}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={productsCurrentPage}
+                        onPageChange={handleProductsPageChange}
+                        className="justify-center"
+                      />
                     </div>
-                  ))}
-                  {products.length > 5 && (
-                    <p className="text-sm text-black text-center pt-2">
-                      Y {products.length - 5} productos más...
-                    </p>
                   )}
-                </div>
+                </>
               ) : (
                 <div className="text-center py-8">
                   <ShoppingBag className="w-12 h-12 text-gray-400 mx-auto mb-3" />
