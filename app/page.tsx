@@ -355,6 +355,19 @@ export default async function Home() {
                 <a href="/pages/soon" className="hover:text-gray-900 transition-colors">Cookies</a>
               </div>
             </div>
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-400">
+                powered by{" "}
+                <a 
+                  href="https://grimo-dev.vercel.app" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:underline transition-all duration-300"
+                >
+                  GrimoDev
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </footer>
