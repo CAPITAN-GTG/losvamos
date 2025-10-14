@@ -2,9 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Navigation from "./components/Navigation";
 import SearchBar from "./components/SearchBar";
-import PinButton from "./components/PinButton";
-import CartButton from "./components/CartButton";
-import { getFeaturedPlaces, getFeaturedProducts, formatPrice } from "@/lib/api-utils";
+import { getFeaturedPlaces } from "@/lib/api-utils";
 import {
   Carousel,
   CarouselContent,
@@ -16,14 +14,6 @@ import {
   MapPin, 
   ShoppingBag, 
   ArrowRight, 
-  Star, 
-  Users, 
-  Globe, 
-  Heart,
-  ChevronRight,
-  Mountain,
-  Camera,
-  Compass,
   Youtube,
   Instagram,
   Mail,
@@ -33,7 +23,6 @@ import {
 
 export default async function Home() {
   const featuredPlaces = await getFeaturedPlaces();
-  const featuredProducts = await getFeaturedProducts();
   
   return (
     <div className="min-h-screen bg-white">
@@ -156,10 +145,10 @@ export default async function Home() {
       </div>
 
       {/* Divider */}
-      <div className="border-t border-gray-200"></div>
+      {/* <div className="border-t border-gray-200"></div> */}
 
       {/* Shop Preview */}
-      <div className="bg-gray-50 py-20">
+      {/* <div className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -192,10 +181,10 @@ export default async function Home() {
                         />
                         
                         {/* Dark overlay for text readability */}
-                        <div className="absolute inset-0 bg-black/40"></div>
+                        {/* <div className="absolute inset-0 bg-black/40"></div>
                         
                         {/* Text overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                        {/* <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
                           <h3 className="font-bold text-sm mb-1 line-clamp-2 group-hover:text-purple-200 transition-colors duration-300">{product.name}</h3>
                           <p className="text-xs text-gray-200 line-clamp-1 group-hover:text-purple-100 transition-colors duration-300">{formatPrice(product)}</p>
                         </div>
@@ -219,7 +208,7 @@ export default async function Home() {
             </a>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200">
